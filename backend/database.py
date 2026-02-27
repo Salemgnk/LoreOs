@@ -11,5 +11,9 @@ def get_supabase() -> Client:
     global _client
     if _client is None:
         s = get_settings()
+        if not s.supabase_url or not s.supabase_service_key:
+            raise RuntimeError(
+                "SUPABASE_URL et SUPABASE_SERVICE_KEY doivent être configurées dans .env"
+            )
         _client = create_client(s.supabase_url, s.supabase_service_key)
     return _client

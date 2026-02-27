@@ -1,13 +1,13 @@
-"""LoreChat — logique métier (RAG conversationnel)."""
+"""LoreChat — logique métier (Supabase PostgREST)."""
 
 from database import get_supabase
 from core.rag import rag_stream
 
 
 async def save_message(universe_id: str, role: str, content: str) -> dict:
-    db = get_supabase()
+    sb = get_supabase()
     result = (
-        db.table("chat_history")
+        sb.table("chat_history")
         .insert({"universe_id": universe_id, "role": role, "content": content})
         .execute()
     )
@@ -15,12 +15,12 @@ async def save_message(universe_id: str, role: str, content: str) -> dict:
 
 
 async def get_history(universe_id: str, limit: int = 50) -> list[dict]:
-    db = get_supabase()
+    sb = get_supabase()
     result = (
-        db.table("chat_history")
+        sb.table("chat_history")
         .select("*")
         .eq("universe_id", universe_id)
-        .order("created_at", desc=False)
+        .order("created_at")
         .limit(limit)
         .execute()
     )

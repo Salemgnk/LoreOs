@@ -1,4 +1,4 @@
-"""Pipeline RAG — recherche vectorielle + génération augmentée."""
+"""Pipeline RAG — recherche vectorielle cosine + génération augmentée (Supabase pgvector)."""
 
 from database import get_supabase
 from core.embeddings import embed_query
@@ -11,11 +11,11 @@ def search_similar_chunks(
     top_k: int = 5,
     threshold: float = 0.7,
 ) -> list[dict]:
-    """Recherche les chunks les plus proches de la query dans pgvector."""
-    db = get_supabase()
+    """Recherche les chunks les plus proches via la RPC match_chunks de Supabase."""
     query_embedding = embed_query(query)
+    sb = get_supabase()
 
-    result = db.rpc(
+    result = sb.rpc(
         "match_chunks",
         {
             "query_embedding": query_embedding,
@@ -25,7 +25,15 @@ def search_similar_chunks(
         },
     ).execute()
 
-    return result.data or []
+    return [
+        {
+            "content": row["content"],
+            "source_label": row.get("source_label", ""),
+            "source_type": row.get("source_type", ""),
+            "similarity": row.get("similarity", 0),
+        }
+        for row in (result.data or [])
+    ]
 
 
 SYSTEM_PROMPT = """Tu es LoreChat, l'assistant IA de LoreOS.
@@ -44,7 +52,6 @@ async def rag_stream(universe_id: str, question: str):
         yield "Je n'ai pas trouvé d'information pertinente dans ton univers pour répondre à cette question."
         return
 
-    # Construire le contexte
     context_parts = []
     for c in chunks:
         source = c.get("source_label", "")
