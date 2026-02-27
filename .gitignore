@@ -15,6 +15,9 @@ venv/
 out/
 dist/
 
+# Logs
+.logs/
+
 # IDE
 .vscode/
 .idea/
