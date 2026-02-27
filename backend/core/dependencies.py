@@ -4,7 +4,10 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from database import get_supabase
 
-bearer_scheme = HTTPBearer()
+bearer_scheme = HTTPBearer(
+    description="Colle ton access_token Supabase (JWT) ici",
+    bearerFormat="JWT",
+)
 
 
 async def get_current_user(

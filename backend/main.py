@@ -28,6 +28,14 @@ app = FastAPI(
     title="LoreOS API",
     version="0.1.0",
     description="Le cerveau de ton univers fictif.",
+    swagger_ui_parameters={"persistAuthorization": True},
+    openapi_tags=[
+        {"name": "Auth", "description": "Inscription, connexion, vérification"},
+        {"name": "Universes", "description": "CRUD univers"},
+        {"name": "Characters", "description": "CRUD personnages + relations"},
+        {"name": "Maps", "description": "CRUD cartes + markers"},
+        {"name": "LoreChat", "description": "Chat IA + historique"},
+    ],
 )
 
 # ── CORS ─────────────────────────────────────────────────────
