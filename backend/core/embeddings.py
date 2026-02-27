@@ -1,45 +1,43 @@
 """Service d'embeddings — génère des vecteurs via Gemini text-embedding-004."""
 
-import google.generativeai as genai
+from google import genai
 from config import get_settings
 
+_client = None
 
-def _configure():
-    s = get_settings()
-    genai.configure(api_key=s.gemini_api_key)
+
+def _get_client():
+    global _client
+    if _client is None:
+        s = get_settings()
+        if not s.gemini_api_key:
+            raise RuntimeError("GEMINI_API_KEY non configurée")
+        _client = genai.Client(api_key=s.gemini_api_key)
+    return _client
 
 
 def embed_text(text: str) -> list[float]:
     """Embed un seul texte, retourne un vecteur."""
-    _configure()
+    client = _get_client()
     s = get_settings()
-    result = genai.embed_content(
+    result = client.models.embed_content(
         model=s.embedding_model,
-        content=text,
-        task_type="retrieval_document",
+        contents=text,
     )
-    return result["embedding"]
+    return result.embeddings[0].values
 
 
 def embed_query(query: str) -> list[float]:
-    """Embed une requête utilisateur (task_type différent)."""
-    _configure()
-    s = get_settings()
-    result = genai.embed_content(
-        model=s.embedding_model,
-        content=query,
-        task_type="retrieval_query",
-    )
-    return result["embedding"]
+    """Embed une requête utilisateur."""
+    return embed_text(query)
 
 
 def embed_batch(texts: list[str]) -> list[list[float]]:
     """Embed un batch de textes."""
-    _configure()
+    client = _get_client()
     s = get_settings()
-    result = genai.embed_content(
+    result = client.models.embed_content(
         model=s.embedding_model,
-        content=texts,
-        task_type="retrieval_document",
+        contents=texts,
     )
-    return result["embedding"]
+    return [e.values for e in result.embeddings]

@@ -1,33 +1,36 @@
-"""Client LLM — abstraction autour de Gemini."""
+"""Client LLM — abstraction autour de Gemini (google-genai SDK)."""
 
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from config import get_settings
 
-
-def _configure():
-    s = get_settings()
-    genai.configure(api_key=s.gemini_api_key)
+_client = None
 
 
-def get_chat_model():
-    """Retourne un modèle Gemini pour le chat."""
-    _configure()
-    s = get_settings()
-    return genai.GenerativeModel(s.chat_model)
+def _get_client():
+    global _client
+    if _client is None:
+        s = get_settings()
+        if not s.gemini_api_key:
+            raise RuntimeError("GEMINI_API_KEY non configurée")
+        _client = genai.Client(api_key=s.gemini_api_key)
+    return _client
 
 
 async def generate_stream(prompt: str, system: str = ""):
     """Génère une réponse en streaming."""
-    model = get_chat_model()
-    chat = model.start_chat()
+    client = _get_client()
+    s = get_settings()
 
+    config = types.GenerateContentConfig()
     if system:
-        # Gemini gère le system prompt via le premier message
-        full_prompt = f"{system}\n\n---\n\n{prompt}"
-    else:
-        full_prompt = prompt
+        config.system_instruction = system
 
-    response = model.generate_content(full_prompt, stream=True)
+    response = client.models.generate_content_stream(
+        model=s.chat_model,
+        contents=prompt,
+        config=config,
+    )
     for chunk in response:
         if chunk.text:
             yield chunk.text
