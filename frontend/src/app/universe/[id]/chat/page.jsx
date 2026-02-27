@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export default function ChatPage({ params }) {
+export default function ChatPage() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
 

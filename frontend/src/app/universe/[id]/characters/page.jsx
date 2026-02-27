@@ -1,6 +1,6 @@
 "use client";
 
-export default function CharactersPage({ params }) {
+export default function CharactersPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-8">

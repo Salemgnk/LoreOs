@@ -1,0 +1,14 @@
+# Backend
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.venv/
+.env
+.git/
+.gitignore
+*.md
+
+# Frontend (copié séparément)
+frontend/
+docs/

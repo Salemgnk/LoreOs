@@ -6,18 +6,20 @@
 
 ```
 LoreOS/
-├── backend/                    ← FastAPI + Python
-│   ├── main.py                 ← Point d'entrée, enregistre les routers
-│   ├── config.py               ← Settings (.env)
-│   ├── database.py             ← Client Supabase
-│   ├── schema.sql              ← Schéma BDD complet
+├── docker-compose.yml              ← Orchestre backend + frontend
+├── backend/                        ← FastAPI + Python
+│   ├── Dockerfile
+│   ├── main.py                     ← Point d'entrée, enregistre les routers
+│   ├── config.py                   ← Settings (.env)
+│   ├── database.py                 ← Client Supabase
+│   ├── schema.sql                  ← Schéma BDD complet
 │   ├── requirements.txt
-│   ├── core/                   ← Services partagés
-│   │   ├── llm.py              ← Client Gemini
-│   │   ├── embeddings.py       ← Génération de vecteurs
-│   │   ├── chunking.py         ← Découpage de texte
-│   │   └── rag.py              ← Pipeline RAG complet
-│   └── modules/                ← Un dossier par module
+│   ├── core/                       ← Services partagés
+│   │   ├── llm.py                  ← Client Gemini
+│   │   ├── embeddings.py           ← Génération de vecteurs
+│   │   ├── chunking.py             ← Découpage de texte
+│   │   └── rag.py                  ← Pipeline RAG complet
+│   └── modules/                    ← Un dossier par module
 │       ├── auth/               ← 🔐 Supabase Auth
 │       ├── universes/          ← 🌍 CRUD univers
 │       ├── characters/         ← 👥 Personnages + relations  ← MVP
@@ -31,7 +33,8 @@ LoreOS/
 │       ├── scriptforge/        ← ✍️ Systèmes d'écriture      ← V2
 │       └── ecosystem/          ← 🌿 Faune et flore           ← V2
 │
-├── frontend/                   ← Next.js + Tailwind
+├── frontend/                   ← Next.js 15 + Tailwind
+│   ├── Dockerfile
 │   ├── src/
 │   │   ├── app/
 │   │   │   ├── page.jsx                    ← Landing page
@@ -60,44 +63,62 @@ LoreOS/
 | Couche      | Techno                           |
 |-------------|----------------------------------|
 | Backend     | FastAPI + Python                 |
-| Frontend    | Next.js 14 + Tailwind            |
+| Frontend    | Next.js 15 + Tailwind            |
 | BDD         | Supabase (PostgreSQL + pgvector) |
-| LLM         | Gemini 1.5 Flash                 |
+| LLM         | Gemini 2.0 Flash                 |
 | Embeddings  | text-embedding-004               |
 | Cartes      | Leaflet.js (à venir)            |
-| Graphes     | React Flow                       |
+| Graphes     | XY Flow (React Flow v12)         |
 | Auth        | Supabase Auth                    |
+| Infra       | Docker Compose                   |
 
 ## Démarrage rapide
+
+### Prérequis
+
+- Docker + Docker Compose v2
+- Un projet [Supabase](https://supabase.com)
+- Une clé API [Gemini](https://ai.google.dev)
 
 ### 1. Supabase
 
 1. Crée un projet sur [supabase.com](https://supabase.com)
 2. Exécute `backend/schema.sql` dans l'éditeur SQL
-3. Récupère `SUPABASE_URL` et `SUPABASE_SERVICE_KEY` (Settings > API)
+3. Récupère tes clés dans Settings > API
 
-### 2. Backend
-
-```bash
-cd backend
-python -m venv venv && source venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env   # remplir les clés
-uvicorn main:app --reload
-```
-
-→ API sur `http://localhost:8000` — Docs : `http://localhost:8000/docs`
-
-### 3. Frontend
+### 2. Config
 
 ```bash
-cd frontend
-npm install
-cp .env.example .env.local   # remplir les clés
-npm run dev
+# Backend
+cp backend/.env.example backend/.env
+# → Remplir SUPABASE_URL, SUPABASE_SERVICE_KEY, GEMINI_API_KEY
+
+# Frontend
+cp frontend/.env.example frontend/.env.local
+# → Remplir NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY
 ```
 
-→ App sur `http://localhost:3000`
+### 3. Lancer
+
+```bash
+docker compose up
+```
+
+→ Backend : `http://localhost:8000` (Swagger : `/docs`)
+→ Frontend : `http://localhost:3000`
+
+Le hot reload fonctionne pour les deux services. Tu modifies le code, ça se met à jour automatiquement.
+
+### Sans Docker (optionnel)
+
+```bash
+# Backend
+cd backend && python -m venv venv && source venv/bin/activate
+pip install -r requirements.txt && uvicorn main:app --reload
+
+# Frontend
+cd frontend && npm install --legacy-peer-deps && npm run dev
+```
 
 ## Modules — chaque module suit le même pattern
 

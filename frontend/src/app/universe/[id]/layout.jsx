@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useParams } from "next/navigation";
 import { clsx } from "clsx";
 
 const modules = [
@@ -20,9 +20,10 @@ const modules = [
   { name: "Écosystème", path: "/ecosystem", icon: "🌿", v2: true },
 ];
 
-export default function UniverseLayout({ children, params }) {
+export default function UniverseLayout({ children }) {
   const pathname = usePathname();
-  const basePath = `/universe/${params.id}`;
+  const { id } = useParams();
+  const basePath = `/universe/${id}`;
 
   return (
     <div className="flex min-h-screen">

@@ -1,11 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Proxy vers le backend FastAPI en dev
+  output: "standalone",
+  // Proxy API calls vers le backend en dev
   async rewrites() {
     return [
       {
         source: "/api/:path*",
-        destination: "http://localhost:8000/:path*",
+        destination: "http://backend:8000/:path*",
       },
     ];
   },

@@ -1,6 +1,6 @@
 "use client";
 
-export default function MapPage({ params }) {
+export default function MapPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
