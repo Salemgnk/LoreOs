@@ -1,83 +1,140 @@
-# LoreOS — MVP
+# 🌍 LoreOS
 
-> Le cerveau de ton univers fictif. Pose des questions sur tes notes en langage naturel.
+> Le système d'exploitation de l'écrivain fantasy — worldbuilding, langues, religions, cultures, personnages et histoire dans une seule app.
+
+## Architecture
+
+```
+LoreOS/
+├── backend/                    ← FastAPI + Python
+│   ├── main.py                 ← Point d'entrée, enregistre les routers
+│   ├── config.py               ← Settings (.env)
+│   ├── database.py             ← Client Supabase
+│   ├── schema.sql              ← Schéma BDD complet
+│   ├── requirements.txt
+│   ├── core/                   ← Services partagés
+│   │   ├── llm.py              ← Client Gemini
+│   │   ├── embeddings.py       ← Génération de vecteurs
+│   │   ├── chunking.py         ← Découpage de texte
+│   │   └── rag.py              ← Pipeline RAG complet
+│   └── modules/                ← Un dossier par module
+│       ├── auth/               ← 🔐 Supabase Auth
+│       ├── universes/          ← 🌍 CRUD univers
+│       ├── characters/         ← 👥 Personnages + relations  ← MVP
+│       ├── maps/               ← 🗺️ Cartes + marqueurs      ← MVP
+│       ├── lorechat/           ← 🧠 Chat RAG (SSE)          ← MVP
+│       ├── chronicles/         ← 📜 Timeline                 ← V1
+│       ├── factions/           ← ⚔️ Factions                 ← V1
+│       ├── pantheon/           ← ⛪ Religions                ← V1
+│       ├── cultures/           ← 🏛️ Civilisations            ← V2
+│       ├── langforge/          ← 🗣️ Langues fictives         ← V2
+│       ├── scriptforge/        ← ✍️ Systèmes d'écriture      ← V2
+│       └── ecosystem/          ← 🌿 Faune et flore           ← V2
+│
+├── frontend/                   ← Next.js + Tailwind
+│   ├── src/
+│   │   ├── app/
+│   │   │   ├── page.jsx                    ← Landing page
+│   │   │   ├── (auth)/login/page.jsx       ← Connexion
+│   │   │   ├── (auth)/register/page.jsx    ← Inscription
+│   │   │   └── universe/[id]/             ← App principale
+│   │   │       ├── layout.jsx              ← Sidebar modules
+│   │   │       ├── page.jsx                ← Dashboard univers
+│   │   │       ├── characters/page.jsx
+│   │   │       ├── map/page.jsx
+│   │   │       ├── chat/page.jsx
+│   │   │       └── ... (un dossier par module)
+│   │   ├── lib/
+│   │   │   ├── api.js          ← Client API (fetch vers FastAPI)
+│   │   │   └── supabase.js     ← Client Supabase côté front
+│   │   ├── components/         ← Composants React par module
+│   │   └── hooks/              ← Custom hooks
+│   └── package.json
+│
+└── docs/
+    └── 09-LoreOS.md            ← Spec complète du projet
+```
 
 ## Stack
 
-- **Backend** : FastAPI + Python
-- **Frontend** : Next.js + Tailwind
-- **BDD** : Supabase (PostgreSQL + pgvector)
-- **LLM** : Gemini 1.5 Flash (chat) + text-embedding-004 (embeddings)
+| Couche      | Techno                           |
+|-------------|----------------------------------|
+| Backend     | FastAPI + Python                 |
+| Frontend    | Next.js 14 + Tailwind            |
+| BDD         | Supabase (PostgreSQL + pgvector) |
+| LLM         | Gemini 1.5 Flash                 |
+| Embeddings  | text-embedding-004               |
+| Cartes      | Leaflet.js (à venir)            |
+| Graphes     | React Flow                       |
+| Auth        | Supabase Auth                    |
 
----
-
-## Setup
+## Démarrage rapide
 
 ### 1. Supabase
 
 1. Crée un projet sur [supabase.com](https://supabase.com)
-2. Dans l'éditeur SQL, exécute le contenu de `backend/schema.sql`
-3. Récupère ton `SUPABASE_URL` et `SUPABASE_SERVICE_KEY` dans Settings > API
+2. Exécute `backend/schema.sql` dans l'éditeur SQL
+3. Récupère `SUPABASE_URL` et `SUPABASE_SERVICE_KEY` (Settings > API)
 
 ### 2. Backend
 
 ```bash
 cd backend
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
+python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
-
-cp .env.example .env
-# Remplis .env avec tes clés
-
+cp .env.example .env   # remplir les clés
 uvicorn main:app --reload
 ```
 
-L'API tourne sur `http://localhost:8000`
-Docs auto : `http://localhost:8000/docs`
+→ API sur `http://localhost:8000` — Docs : `http://localhost:8000/docs`
 
 ### 3. Frontend
 
 ```bash
 cd frontend
 npm install
+cp .env.example .env.local   # remplir les clés
 npm run dev
 ```
 
-L'app tourne sur `http://localhost:3000`
+→ App sur `http://localhost:3000`
 
-### 4. Dernière étape
+## Modules — chaque module suit le même pattern
 
-Dans `frontend/src/app/page.jsx`, remplace `your-universe-uuid-here` par l'UUID d'un univers que tu as créé dans Supabase.
+### Backend : `modules/<nom>/`
 
----
+| Fichier       | Rôle                                          |
+|---------------|-----------------------------------------------|
+| `models.py`   | Schémas Pydantic (Create, Update, Out)       |
+| `service.py`  | Logique métier + accès BDD + indexation RAG  |
+| `router.py`   | Endpoints FastAPI                             |
 
-## Architecture
+### Frontend : `app/universe/[id]/<nom>/`
 
-```
-Utilisateur
-    │
-    ▼
-┌─────────────┐     POST /notes/     ┌─────────────────────────────────┐
-│  NotePanel  │ ──────────────────▶ │  FastAPI                         │
-│  (ajouter   │                     │  1. Sauvegarde la note           │
-│   des notes)│                     │  2. Chunk le texte               │
-└─────────────┘                     │  3. Embed chaque chunk           │
-                                    │  4. Stocke dans pgvector         │
-┌─────────────┐     POST /chat/     └─────────────────────────────────┘
-│  ChatPanel  │ ──────────────────▶ │  FastAPI RAG                     │
-│  (poser des │                     │  1. Embed la question            │
-│  questions) │     SSE stream ◀─── │  2. Recherche vectorielle        │
-└─────────────┘                     │  3. Injecte les chunks dans      │
-                                    │     le prompt Gemini             │
-                                    │  4. Stream la réponse            │
-                                    └─────────────────────────────────┘
-```
+Chaque module a sa page, ses composants dans `components/<nom>/`, et utilise le client `lib/api.js`.
 
 ## Roadmap
 
+### ✅ MVP — En cours
+- [x] Structure projet modulaire
 - [ ] Auth (Supabase Auth)
-- [ ] Sélecteur d'univers
-- [ ] ChronicleForge (timeline)
-- [ ] FactionEngine
-- [ ] Export PDF de la bible
+- [ ] CRUD univers + sélecteur
+- [ ] Fiches personnages + graphe de relations
+- [ ] Carte (upload + annotations)
+- [ ] LoreChat (RAG sur personnages + lieux)
+- [ ] Landing page
+
+### 🔜 V1
+- [ ] ChronicleForge (timeline interactive)
+- [ ] FactionEngine (factions + alliances)
+- [ ] PantheonForge (religions + mythologie)
+- [ ] LoreChat étendu (RAG sur tout l'univers)
+- [ ] Stripe
+
+### 🔮 V2
+- [ ] CultureWeaver (civilisations)
+- [ ] LangForge (langues fictives)
+- [ ] ScriptForge (systèmes d'écriture)
+- [ ] EcosystemBuilder (faune et flore)
+- [ ] MapLore avancé (régions liées aux données)
+- [ ] Mode Studio (collaboration temps réel)

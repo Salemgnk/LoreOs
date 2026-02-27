@@ -14,9 +14,9 @@ LoreOS est une plateforme complète de worldbuilding destinée aux écrivains de
 - **Entity**: Tout élément créé dans l'univers (personnage, lieu, faction, etc.)
 - **Cross_Reference**: Un lien entre deux entités de modules différents
 - **Coherence_Engine**: Le système d'IA qui détecte les incohérences entre entités
-- **Free_Tier**: Abonnement gratuit limité à 1 univers sans IA
-- **Pro_Tier**: Abonnement à 18€/mois avec univers illimités et IA
-- **Studio_Tier**: Abonnement à 59€/mois pour collaboration en équipe
+- **Free_Tier**: Abonnement gratuit limité à 1 univers avec 50 messages LoreChat/mois
+- **Pro_Tier**: Abonnement à 18€/mois avec univers illimités, LoreChat illimité et Coherence Engine
+- **Studio_Tier**: Abonnement à 59€/mois pour collaboration en équipe avec toutes les fonctionnalités Pro
 - **Backend**: Serveur Python + FastAPI
 - **Frontend**: Application Next.js
 - **Database**: PostgreSQL avec pgvector pour RAG
@@ -88,14 +88,18 @@ LoreOS est une plateforme complète de worldbuilding destinée aux écrivains de
 
 #### Acceptance Criteria
 
-1. WHERE Pro_Tier, THE LoreChat SHALL être accessible pour tous les univers
-2. WHERE Free_Tier, THE LoreChat SHALL être désactivé
-3. WHEN un User pose une question, THE LoreChat SHALL rechercher dans toutes les entités de l'Universe
-4. THE LoreChat SHALL utiliser l'API Claude pour générer des réponses contextuelles
-5. THE LoreChat SHALL citer les sources (entités) utilisées pour répondre
-6. WHEN aucune information n'existe, THE LoreChat SHALL indiquer clairement l'absence de données
-7. THE LoreChat SHALL maintenir l'historique des conversations par Universe
-8. THE LoreChat SHALL répondre en moins de 5 secondes pour 95% des requêtes
+1. THE LoreChat SHALL être accessible pour tous les tiers d'abonnement
+2. WHERE Free_Tier, THE LoreChat SHALL limiter à 50 messages par mois
+3. WHERE Pro_Tier, THE LoreChat SHALL permettre un nombre illimité de messages
+4. WHERE Studio_Tier, THE LoreChat SHALL permettre un nombre illimité de messages
+5. WHEN un Free_Tier User atteint la limite mensuelle, THE LoreChat SHALL afficher un message invitant à passer en Pro
+6. WHEN un User pose une question, THE LoreChat SHALL rechercher dans toutes les entités de l'Universe
+7. THE LoreChat SHALL utiliser l'API Claude pour générer des réponses contextuelles
+8. THE LoreChat SHALL citer les sources (entités) utilisées pour répondre
+9. WHEN aucune information n'existe, THE LoreChat SHALL indiquer clairement l'absence de données
+10. THE LoreChat SHALL maintenir l'historique des conversations par Universe
+11. THE LoreChat SHALL répondre en moins de 5 secondes pour 95% des requêtes
+12. THE LoreChat SHALL afficher le compteur de messages restants pour les Free_Tier Users
 
 ### Requirement 6: Coherence Engine - Détection d'Incohérences
 
@@ -103,13 +107,15 @@ LoreOS est une plateforme complète de worldbuilding destinée aux écrivains de
 
 #### Acceptance Criteria
 
-1. WHERE Pro_Tier, THE Coherence_Engine SHALL analyser les entités pour détecter les incohérences
-2. WHEN un User modifie une Entity, THE Coherence_Engine SHALL vérifier la cohérence avec les entités liées
-3. IF une incohérence est détectée, THEN THE Coherence_Engine SHALL afficher une alerte à l'utilisateur
-4. THE Coherence_Engine SHALL détecter les incohérences temporelles (dates contradictoires)
-5. THE Coherence_Engine SHALL détecter les incohérences géographiques (distances impossibles)
-6. THE Coherence_Engine SHALL détecter les incohérences relationnelles (relations contradictoires)
-7. THE Coherence_Engine SHALL permettre à l'utilisateur d'ignorer une alerte spécifique
+1. WHERE Pro_Tier, THE Coherence_Engine SHALL analyser automatiquement les entités pour détecter les incohérences
+2. WHERE Studio_Tier, THE Coherence_Engine SHALL analyser automatiquement les entités pour détecter les incohérences
+3. WHERE Free_Tier, THE Coherence_Engine SHALL être désactivé
+4. WHEN un Pro_Tier User modifie une Entity, THE Coherence_Engine SHALL vérifier la cohérence avec les entités liées
+5. IF une incohérence est détectée, THEN THE Coherence_Engine SHALL afficher une alerte à l'utilisateur
+6. THE Coherence_Engine SHALL détecter les incohérences temporelles (dates contradictoires)
+7. THE Coherence_Engine SHALL détecter les incohérences géographiques (distances impossibles)
+8. THE Coherence_Engine SHALL détecter les incohérences relationnelles (relations contradictoires)
+9. THE Coherence_Engine SHALL permettre à l'utilisateur d'ignorer une alerte spécifique
 
 ### Requirement 7: Cross-References - Interconnexions
 
@@ -126,7 +132,7 @@ LoreOS est une plateforme complète de worldbuilding destinée aux écrivains de
 
 ### Requirement 8: Subscription Manager - Gestion des Abonnements
 
-**User Story:** En tant qu'utilisateur, je veux souscrire à un abonnement payant, afin d'accéder aux fonctionnalités avancées et à l'IA.
+**User Story:** En tant qu'utilisateur, je veux souscrire à un abonnement payant, afin d'accéder aux fonctionnalités avancées et illimitées.
 
 #### Acceptance Criteria
 
@@ -138,6 +144,8 @@ LoreOS est une plateforme complète de worldbuilding destinée aux écrivains de
 6. THE Subscription_Manager SHALL permettre de résilier un abonnement
 7. WHEN un abonnement est résilié, THE Subscription_Manager SHALL maintenir l'accès jusqu'à la fin de la période payée
 8. WHEN un abonnement expire, THE Subscription_Manager SHALL rétrograder automatiquement vers Free_Tier
+9. THE Subscription_Manager SHALL réinitialiser le compteur de messages LoreChat à 50 chaque mois pour les Free_Tier Users
+10. THE Subscription_Manager SHALL suivre l'utilisation mensuelle de LoreChat pour chaque User
 
 ### Requirement 9: ChronicleForge - Timeline Historique
 
