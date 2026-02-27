@@ -1,8 +1,9 @@
 """Auth — endpoints."""
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from modules.auth.models import SignUpRequest, SignInRequest, AuthResponse
 from modules.auth import service
+from core.dependencies import get_current_user
 
 router = APIRouter()
 
@@ -21,3 +22,9 @@ async def signin(data: SignInRequest):
         return await service.sign_in(data)
     except Exception as e:
         raise HTTPException(status_code=401, detail="Identifiants invalides")
+
+
+@router.get("/me")
+async def me(user: dict = Depends(get_current_user)):
+    """Retourne l'utilisateur courant (vérifie le token)."""
+    return user

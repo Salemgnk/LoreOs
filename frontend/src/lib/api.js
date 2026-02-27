@@ -1,15 +1,26 @@
 /**
  * Client API — appels vers le backend FastAPI.
- * Utilise le proxy Next.js en dev (/api → http://localhost:8000).
+ * Injecte automatiquement le JWT Supabase dans chaque requête.
  */
+
+import { supabase } from "@/lib/supabase";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
+async function getToken() {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  return session?.access_token ?? null;
+}
+
 async function request(path, options = {}) {
   const url = `${BASE_URL}${path}`;
+  const token = await getToken();
   const res = await fetch(url, {
     headers: {
       "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...options.headers,
     },
     ...options,
@@ -105,10 +116,14 @@ export const chat = {
     request(`/universes/${universeId}/chat/history?limit=${limit}`),
 
   /** Envoie une question et retourne un EventSource (SSE). */
-  ask: (universeId, question) => {
+  ask: async (universeId, question) => {
+    const token = await getToken();
     return fetch(`${BASE_URL}/universes/${universeId}/chat`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
       body: JSON.stringify({ question }),
     });
   },

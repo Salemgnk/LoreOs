@@ -1,22 +1,23 @@
 """Maps — endpoints CRUD + markers."""
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from modules.maps.models import (
     MapCreate, MapUpdate, MapOut,
     MarkerCreate, MarkerUpdate, MarkerOut,
 )
 from modules.maps import service
+from core.dependencies import get_current_user
 
 router = APIRouter()
 
 
 @router.post("/", response_model=MapOut)
-async def create(universe_id: str, data: MapCreate):
+async def create(universe_id: str, data: MapCreate, _: dict = Depends(get_current_user)):
     return await service.create_map(universe_id, data)
 
 
 @router.get("/", response_model=list[MapOut])
-async def list_all(universe_id: str):
+async def list_all(universe_id: str, _: dict = Depends(get_current_user)):
     return await service.list_maps(universe_id)
 
 

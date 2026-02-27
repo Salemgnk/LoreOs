@@ -1,22 +1,23 @@
 """Characters — endpoints CRUD + relations."""
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from modules.characters.models import (
     CharacterCreate, CharacterUpdate, CharacterOut,
     RelationCreate, RelationOut,
 )
 from modules.characters import service
+from core.dependencies import get_current_user
 
 router = APIRouter()
 
 
 @router.post("/", response_model=CharacterOut)
-async def create(universe_id: str, data: CharacterCreate):
+async def create(universe_id: str, data: CharacterCreate, _: dict = Depends(get_current_user)):
     return await service.create_character(universe_id, data)
 
 
 @router.get("/", response_model=list[CharacterOut])
-async def list_all(universe_id: str):
+async def list_all(universe_id: str, _: dict = Depends(get_current_user)):
     return await service.list_characters(universe_id)
 
 
