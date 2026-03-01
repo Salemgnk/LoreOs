@@ -18,7 +18,7 @@ class Settings(BaseSettings):
 
     # Embeddings
     embedding_model: str = "gemini-embedding-001"
-    embedding_dimension: int = 3072
+    embedding_dimension: int = 768
 
     # LLM
     chat_model: str = "gemini-2.0-flash"

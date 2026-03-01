@@ -1,24 +1,14 @@
--- Migration : text-embedding-004 (768d) → gemini-embedding-001 (3072d)
+-- Migration : text-embedding-004 → gemini-embedding-001 (dimension reste 768)
+-- Le nouveau modèle supporte output_dimensionality=768, pas besoin de changer la table.
 -- Exécuter dans Supabase SQL Editor
 
--- 1. Supprimer l'index HNSW (dépend de l'ancienne dimension)
-DROP INDEX IF EXISTS idx_chunks_embedding;
-
--- 2. Modifier la colonne embedding de vector(768) → vector(3072)
-ALTER TABLE chunks
-    ALTER COLUMN embedding TYPE vector(3072);
-
--- 3. Supprimer les anciens embeddings (incompatibles, dimension différente)
+-- 1. Vider les anciens embeddings (générés par l'ancien modèle, incompatibles)
 UPDATE chunks SET embedding = NULL;
 
--- 4. Recréer l'index HNSW
-CREATE INDEX idx_chunks_embedding ON chunks
-    USING hnsw (embedding vector_cosine_ops)
-    WITH (m = 16, ef_construction = 64);
-
--- 5. Recréer la fonction match_chunks avec la bonne dimension
+-- 2. S'assurer que la fonction match_chunks est bien en vector(768)
+--    (normalement déjà le cas depuis le schema initial)
 CREATE OR REPLACE FUNCTION match_chunks(
-    query_embedding     vector(3072),
+    query_embedding     vector(768),
     match_universe_id   UUID,
     match_count         INTEGER DEFAULT 5,
     match_threshold     DOUBLE PRECISION DEFAULT 0.7
