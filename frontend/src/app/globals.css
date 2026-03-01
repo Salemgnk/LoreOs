@@ -21,6 +21,9 @@ body {
   font-family: "Inter", system-ui, -apple-system, sans-serif;
 }
 
+/* ── Restore pointer cursor on interactive elements ── */
+button, [role="button"], a, select, summary { cursor: pointer; }
+
 /* ── Heading font ── */
 .font-heading {
   font-family: "Cinzel", "Palatino Linotype", "Book Antiqua", Palatino, serif;
