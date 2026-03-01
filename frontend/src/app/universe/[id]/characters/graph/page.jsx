@@ -81,34 +81,30 @@ const getStyle = (type) => RELATION_STYLE[type] || { color: "#6b7280", label: ty
 function CharacterNode({ data }) {
   const relCount = data.relationCount || 0;
   return (
-    <div
-      className="relative group"
-      style={{ minWidth: 140 }}
-    >
-      {/* Handles pour les arêtes (invisibles mais nécessaires) */}
+    <div className="relative group" style={{ minWidth: 130 }}>
       <Handle type="target" position={Position.Top} className="!bg-transparent !border-0 !w-3 !h-3" />
       <Handle type="source" position={Position.Bottom} className="!bg-transparent !border-0 !w-3 !h-3" />
       <Handle type="target" position={Position.Left} id="left" className="!bg-transparent !border-0 !w-3 !h-3" />
       <Handle type="source" position={Position.Right} id="right" className="!bg-transparent !border-0 !w-3 !h-3" />
 
       <div
-        className="rounded-xl px-4 py-3 border shadow-lg backdrop-blur-sm transition-transform hover:scale-105"
+        className="rounded-xl px-3.5 py-2.5 border backdrop-blur-sm transition-all hover:scale-105"
         style={{
-          background: "rgba(30, 30, 40, 0.95)",
-          borderColor: data.highlight ? "#a855f7" : "rgba(255,255,255,0.08)",
-          boxShadow: data.highlight ? "0 0 20px rgba(168, 85, 247, 0.3)" : "0 4px 20px rgba(0,0,0,0.4)",
+          background: data.highlight ? "rgba(92, 124, 250, 0.12)" : "rgba(24, 27, 42, 0.95)",
+          borderColor: data.highlight ? "rgba(92, 124, 250, 0.4)" : "var(--border)",
+          boxShadow: data.highlight ? "0 0 20px rgba(92, 124, 250, 0.2)" : "0 4px 20px rgba(0,0,0,0.3)",
         }}
       >
-        <p className="font-bold text-sm text-white text-center truncate">{data.name}</p>
+        <p className="font-semibold text-xs text-[var(--text-primary)] text-center truncate">{data.name}</p>
         {data.title && (
-          <p className="text-[10px] text-center text-purple-300 truncate">{data.title}</p>
+          <p className="text-[10px] text-center text-lore-400 truncate">{data.title}</p>
         )}
         {data.location && (
-          <p className="text-[10px] text-center text-gray-400 truncate">📍 {data.location}</p>
+          <p className="text-[9px] text-center text-[var(--text-secondary)] truncate">📍 {data.location}</p>
         )}
         {relCount > 0 && (
-          <p className="text-[9px] text-center text-gray-500 mt-1">
-            {relCount} relation{relCount > 1 ? "s" : ""}
+          <p className="text-[9px] text-center text-[var(--text-secondary)] mt-0.5 opacity-60">
+            {relCount} rel.
           </p>
         )}
       </div>
@@ -140,7 +136,7 @@ export default function GraphPage() {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [selectedNode, setSelectedNode] = useState(null);
-  const [filterType, setFilterType] = useState("all");
+  const [activeFilters, setActiveFilters] = useState(new Set()); // empty = show all
 
   // Fetch all data
   useEffect(() => {
@@ -179,9 +175,9 @@ export default function GraphPage() {
     if (characters.length === 0) return;
 
     const filteredRelations =
-      filterType === "all"
+      activeFilters.size === 0
         ? allRelations
-        : allRelations.filter((r) => r.relation_type === filterType);
+        : allRelations.filter((r) => activeFilters.has(r.relation_type));
 
     // Count relations per character
     const relCount = {};
@@ -192,7 +188,7 @@ export default function GraphPage() {
 
     // If filtering, only show characters with relations
     const visibleChars =
-      filterType === "all"
+      activeFilters.size === 0
         ? characters
         : characters.filter((c) => relCount[c.id]);
 
@@ -212,36 +208,69 @@ export default function GraphPage() {
     }));
 
     const nodeIds = new Set(visibleChars.map((c) => c.id));
+
+    // Track parallel edges between same node pairs for offset
+    const pairCount = {};
+    const pairIndex = {};
+    filteredRelations.forEach((r) => {
+      const key = [r.source_id, r.target_id].sort().join("-");
+      pairCount[key] = (pairCount[key] || 0) + 1;
+    });
+
     const newEdges = filteredRelations
       .filter((r) => nodeIds.has(r.source_id) && nodeIds.has(r.target_id))
       .map((r) => {
         const style = getStyle(r.relation_type);
+        const pairKey = [r.source_id, r.target_id].sort().join("-");
+        const total = pairCount[pairKey] || 1;
+        pairIndex[pairKey] = (pairIndex[pairKey] || 0) + 1;
+        const idx = pairIndex[pairKey];
+
+        // Offset parallel edges using different edge types
+        let edgeType = "smoothstep";
+        let pathOffset = {};
+        if (total > 1) {
+          const offsetVal = (idx - (total + 1) / 2) * 40;
+          pathOffset = { pathOptions: { offset: offsetVal } };
+        }
+
         return {
           id: r.id,
           source: r.source_id,
           target: r.target_id,
           label: `${style.icon} ${style.label}`,
-          labelStyle: { fontSize: 10, fill: style.color, fontWeight: 600 },
-          labelBgStyle: { fill: "rgba(15,15,20,0.85)", fillOpacity: 0.9 },
-          labelBgPadding: [6, 3],
-          labelBgBorderRadius: 6,
-          style: { stroke: style.color, strokeWidth: 2 },
+          labelStyle: { fontSize: 9, fill: style.color, fontWeight: 600 },
+          labelBgStyle: { fill: "rgba(10,11,16,0.92)", fillOpacity: 1 },
+          labelBgPadding: [5, 3],
+          labelBgBorderRadius: 4,
+          style: { stroke: style.color, strokeWidth: 1.5 },
           animated: ["obsession", "forbidden", "bonded", "nemesis"].includes(r.relation_type),
+          type: edgeType,
+          ...pathOffset,
           markerEnd: {
             type: MarkerType.ArrowClosed,
             color: style.color,
-            width: 16,
-            height: 16,
+            width: 14,
+            height: 14,
           },
         };
       });
 
     setNodes(newNodes);
     setEdges(newEdges);
-  }, [characters, allRelations, filterType, selectedNode]);
+  }, [characters, allRelations, activeFilters, selectedNode]);
 
   const onNodeClick = useCallback((_, node) => {
     setSelectedNode((prev) => (prev === node.id ? null : node.id));
+  }, []);
+
+  const toggleFilter = useCallback((type) => {
+    setActiveFilters((prev) => {
+      const next = new Set(prev);
+      if (next.has(type)) next.delete(type);
+      else next.add(type);
+      return next;
+    });
   }, []);
 
   // Unique types present in relations for filter
@@ -253,10 +282,7 @@ export default function GraphPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[80vh]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-lore-500 mx-auto mb-4" />
-          <p className="text-[var(--text-secondary)]">Chargement du graphe…</p>
-        </div>
+        <div className="animate-spin rounded-full h-10 w-10 border-2 border-lore-500 border-t-transparent" />
       </div>
     );
   }
@@ -264,15 +290,14 @@ export default function GraphPage() {
   if (characters.length === 0) {
     return (
       <div className="flex items-center justify-center h-[80vh]">
-        <div className="text-center">
-          <p className="text-5xl mb-4">🕸️</p>
-          <p className="text-lg font-semibold">Aucun personnage</p>
-          <p className="text-[var(--text-secondary)] mb-4">Crée des personnages et des relations pour voir le graphe.</p>
-          <Link
-            href={`/universe/${universeId}/characters`}
-            className="inline-block px-6 py-3 bg-lore-600 hover:bg-lore-700 rounded-lg font-medium transition-colors"
-          >
-            👥 Personnages
+        <div className="card p-10 text-center">
+          <div className="w-14 h-14 rounded-2xl bg-lore-600/10 flex items-center justify-center mx-auto mb-4">
+            <span className="text-2xl">🕸️</span>
+          </div>
+          <p className="font-medium mb-1">Aucun personnage</p>
+          <p className="text-sm text-[var(--text-secondary)] mb-5 max-w-xs mx-auto">Crée des personnages et des relations pour voir le graphe.</p>
+          <Link href={`/universe/${universeId}/characters`} className="btn-primary">
+            Personnages
           </Link>
         </div>
       </div>
@@ -280,25 +305,22 @@ export default function GraphPage() {
   }
 
   return (
-    <div className="h-[calc(100vh-2rem)] flex flex-col">
+    <div className="h-[calc(100vh-2rem)] flex flex-col page-enter">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-3">
         <div>
-          <h1 className="text-3xl font-bold">🕸️ Graphe des relations</h1>
-          <p className="text-[var(--text-secondary)] text-sm">
+          <h1 className="text-2xl font-bold tracking-tight">Graphe des relations</h1>
+          <p className="text-[var(--text-secondary)] text-xs mt-0.5">
             {characters.length} personnage{characters.length !== 1 ? "s" : ""} · {allRelations.length} relation{allRelations.length !== 1 ? "s" : ""}
           </p>
         </div>
-        <Link
-          href={`/universe/${universeId}/characters`}
-          className="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors border border-white/10 flex items-center gap-2"
-        >
+        <Link href={`/universe/${universeId}/characters`} className="btn-ghost text-xs !px-3 !py-2">
           ← Personnages
         </Link>
       </div>
 
       {/* Graph */}
-      <div className="flex-1 rounded-xl overflow-hidden border border-white/5" style={{ background: "rgba(10,10,15,0.8)" }}>
+      <div className="flex-1 rounded-xl overflow-hidden border border-[var(--border)]" style={{ background: "rgba(10,10,15,0.8)" }}>
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -320,7 +342,7 @@ export default function GraphPage() {
             style={{ background: "rgba(30,30,40,0.9)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12 }}
           />
           <MiniMap
-            nodeColor={() => "#a855f7"}
+            nodeColor={() => "#5c7cfa"}
             maskColor="rgba(0,0,0,0.7)"
             style={{
               background: "rgba(20,20,30,0.9)",
@@ -329,54 +351,54 @@ export default function GraphPage() {
             }}
           />
 
-          {/* Filter panel */}
+          {/* Filter panel — multi-select chips */}
           <Panel position="top-left">
-            <div className="bg-[rgba(20,20,30,0.95)] backdrop-blur-sm rounded-xl border border-white/10 p-3 max-w-[220px]">
-              <p className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] mb-2">Filtrer par type</p>
-              <select
-                value={filterType}
-                onChange={(e) => setFilterType(e.target.value)}
-                className="w-full text-xs px-2 py-1.5 rounded-lg bg-white/5 border border-white/10 focus:border-lore-500 focus:outline-none text-white"
-              >
-                <option value="all">Tous les types ({allRelations.length})</option>
+            <div className="glass rounded-xl p-3 max-w-[260px]">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] font-medium">Filtrer</p>
+                {activeFilters.size > 0 && (
+                  <button onClick={() => setActiveFilters(new Set())} className="text-[10px] text-lore-400 hover:text-lore-300 transition-colors">
+                    Tout afficher
+                  </button>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-1">
                 {usedTypes.map((t) => {
                   const s = getStyle(t);
                   const count = allRelations.filter((r) => r.relation_type === t).length;
+                  const isActive = activeFilters.has(t);
                   return (
-                    <option key={t} value={t}>
-                      {s.icon} {s.label} ({count})
-                    </option>
+                    <button
+                      key={t}
+                      onClick={() => toggleFilter(t)}
+                      className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-medium transition-all border ${
+                        isActive
+                          ? "border-current opacity-100"
+                          : activeFilters.size > 0
+                            ? "border-[var(--border)] opacity-40 hover:opacity-70"
+                            : "border-[var(--border)] opacity-80 hover:opacity-100"
+                      }`}
+                      style={isActive ? { color: s.color, borderColor: s.color, background: `${s.color}15` } : {}}
+                    >
+                      <span>{s.icon}</span>
+                      <span>{s.label}</span>
+                      <span className="opacity-60">({count})</span>
+                    </button>
                   );
                 })}
-              </select>
-
-              {/* Legend */}
-              {usedTypes.length > 0 && (
-                <div className="mt-3 space-y-1">
-                  <p className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)]">Légende</p>
-                  {usedTypes.map((t) => {
-                    const s = getStyle(t);
-                    return (
-                      <div key={t} className="flex items-center gap-2 text-[11px]">
-                        <span className="w-3 h-0.5 rounded-full" style={{ backgroundColor: s.color }} />
-                        <span style={{ color: s.color }}>{s.icon} {s.label}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+              </div>
             </div>
           </Panel>
 
           {/* Stats panel */}
           <Panel position="top-right">
-            <div className="bg-[rgba(20,20,30,0.95)] backdrop-blur-sm rounded-xl border border-white/10 p-3 text-xs space-y-1">
-              <p className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] mb-1">Stats</p>
-              <p className="text-white">👥 <span className="text-[var(--text-secondary)]">Personnages:</span> {characters.length}</p>
-              <p className="text-white">🔗 <span className="text-[var(--text-secondary)]">Relations:</span> {allRelations.length}</p>
-              <p className="text-white">🏷️ <span className="text-[var(--text-secondary)]">Types:</span> {usedTypes.length}</p>
+            <div className="glass rounded-xl p-3 text-xs space-y-1">
+              <p className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] mb-1 font-medium">Stats</p>
+              <p>👥 <span className="text-[var(--text-secondary)]">Personnages:</span> {characters.length}</p>
+              <p>🔗 <span className="text-[var(--text-secondary)]">Relations:</span> {allRelations.length}</p>
+              <p>🏷️ <span className="text-[var(--text-secondary)]">Types:</span> {usedTypes.length}</p>
               {selectedNode && (
-                <div className="pt-1 mt-1 border-t border-white/10">
+                <div className="pt-1 mt-1 border-t border-[var(--border)]">
                   <p className="text-lore-400 font-medium">
                     {characters.find((c) => c.id === selectedNode)?.name}
                   </p>

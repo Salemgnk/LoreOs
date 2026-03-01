@@ -264,214 +264,200 @@ export default function CharactersPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-lore-500" />
+        <div className="animate-spin rounded-full h-10 w-10 border-2 border-lore-500 border-t-transparent" />
       </div>
     );
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-8">
+    <div className="page-enter">
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold">👥 Personnages</h1>
-          <p className="text-[var(--text-secondary)]">
-            {characters.length} personnage{characters.length !== 1 ? "s" : ""} dans cet univers
+          <h1 className="text-2xl font-bold tracking-tight">Personnages</h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-0.5">
+            {characters.length} personnage{characters.length !== 1 ? "s" : ""}
           </p>
         </div>
-        <div className="flex gap-3">
-          <Link
-            href={`/universe/${universeId}/characters/graph`}
-            className="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg font-medium transition-colors border border-white/10 text-sm flex items-center gap-2"
-          >
-            🕸️ Graphe
+        <div className="flex gap-2">
+          <Link href={`/universe/${universeId}/characters/graph`} className="btn-ghost text-xs !px-3 !py-2 flex items-center gap-1.5">
+            <span className="text-sm">🕸️</span> Graphe
           </Link>
-          <button
-            onClick={openCreate}
-            className="px-4 py-2 bg-lore-600 hover:bg-lore-700 rounded-lg font-medium transition-colors"
-          >
-            + Nouveau personnage
-          </button>
+          <button onClick={openCreate} className="btn-primary text-xs !px-3 !py-2">+ Nouveau</button>
         </div>
       </div>
 
       {characters.length === 0 ? (
-        <div className="bg-[var(--bg-card)] rounded-xl p-8 border border-white/5 text-center text-[var(--text-secondary)]">
-          <p className="text-4xl mb-4">👥</p>
-          <p>Aucun personnage pour l'instant.</p>
-          <p className="text-sm mt-2">Crée ton premier personnage pour commencer.</p>
-          <button
-            onClick={openCreate}
-            className="mt-4 px-6 py-3 bg-lore-600 hover:bg-lore-700 rounded-lg font-medium transition-colors"
-          >
-            🎭 Créer un personnage
-          </button>
+        <div className="card p-10 text-center">
+          <div className="w-14 h-14 rounded-2xl bg-lore-600/10 flex items-center justify-center mx-auto mb-4">
+            <span className="text-2xl">👥</span>
+          </div>
+          <p className="font-medium mb-1">Aucun personnage</p>
+          <p className="text-sm text-[var(--text-secondary)] mb-5 max-w-xs mx-auto">Crée ton premier personnage pour commencer.</p>
+          <button onClick={openCreate} className="btn-primary">Créer un personnage</button>
         </div>
       ) : (
-        <div className="flex gap-6">
+        <div className={`flex gap-5 ${selected ? "" : ""}`}>
           {/* ── Liste personnages ── */}
-          <div className="w-full lg:w-2/5 space-y-3">
-            {characters.map((c) => (
-              <div
-                key={c.id}
-                onClick={() => selectCharacter(c)}
-                className={`bg-[var(--bg-card)] rounded-xl p-4 border cursor-pointer transition-all group ${
-                  selected?.id === c.id ? "border-lore-500/50 ring-1 ring-lore-500/20" : "border-white/5 hover:border-white/10"
-                }`}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="min-w-0 flex-1">
-                    <h3 className="font-semibold text-lg">{c.name}</h3>
-                    {c.title && <p className="text-sm text-lore-400">{c.title}</p>}
-                    {c.location && <p className="text-xs text-[var(--text-secondary)] mt-0.5">📍 {c.location}</p>}
-                    <p className="text-sm text-[var(--text-secondary)] mt-1 line-clamp-2">
+          <div className={`${selected ? "w-full lg:w-2/5" : "w-full"} transition-all`}>
+            <div className={`grid gap-3 ${selected ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2 xl:grid-cols-3"}`}>
+              {characters.map((c) => (
+                <div
+                  key={c.id}
+                  onClick={() => selectCharacter(c)}
+                  className={`card cursor-pointer group relative overflow-hidden ${
+                    selected?.id === c.id ? "!border-lore-500/40 ring-1 ring-lore-500/15" : ""
+                  }`}
+                >
+                  <div className="p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-semibold text-sm leading-tight">{c.name}</h3>
+                        {c.title && <p className="text-xs text-lore-400 mt-0.5">{c.title}</p>}
+                      </div>
+                      <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity ml-2">
+                        <button onClick={(e) => { e.stopPropagation(); openEdit(c); }} className="text-xs text-[var(--text-secondary)] hover:text-lore-400" title="Modifier">✏️</button>
+                        <button onClick={(e) => { e.stopPropagation(); handleDelete(c.id, c.name); }} className="text-xs text-[var(--text-secondary)] hover:text-red-400" title="Supprimer">✕</button>
+                      </div>
+                    </div>
+                    {c.location && <p className="text-[11px] text-[var(--text-secondary)] mt-1">📍 {c.location}</p>}
+                    <p className="text-xs text-[var(--text-secondary)] mt-1.5 line-clamp-2 leading-relaxed">
                       {c.description || "Pas de description"}
                     </p>
                     {c.traits?.length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-2">
-                        {c.traits.slice(0, 3).map((t) => (
-                          <span key={t} className="text-xs px-2 py-0.5 bg-white/5 rounded-full">{t}</span>
+                        {c.traits.slice(0, 4).map((t) => (
+                          <span key={t} className="chip text-[10px] !px-1.5 !py-0.5">{t}</span>
                         ))}
-                        {c.traits.length > 3 && (
-                          <span className="text-xs text-[var(--text-secondary)]">+{c.traits.length - 3}</span>
+                        {c.traits.length > 4 && (
+                          <span className="text-[10px] text-[var(--text-secondary)] self-center">+{c.traits.length - 4}</span>
                         )}
                       </div>
                     )}
                   </div>
-                  <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity ml-2">
-                    <button onClick={(e) => { e.stopPropagation(); openEdit(c); }} className="text-sm hover:text-lore-400" title="Modifier">✏️</button>
-                    <button onClick={(e) => { e.stopPropagation(); handleDelete(c.id, c.name); }} className="text-sm hover:text-red-400" title="Supprimer">🗑️</button>
-                  </div>
+                  <div className="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-lore-500 to-lore-700 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
 
           {/* ── Fiche détail + Relations ── */}
           {selected && (
-            <div className="hidden lg:block w-3/5 bg-[var(--bg-card)] rounded-xl p-6 border border-white/5 sticky top-8 self-start max-h-[85vh] overflow-y-auto">
-              {/* Header */}
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h2 className="text-2xl font-bold">{selected.name}</h2>
-                  {selected.title && <p className="text-lore-400 text-sm">{selected.title}</p>}
-                </div>
-                <button onClick={() => { setSelected(null); setRelations([]); }} className="text-[var(--text-secondary)] hover:text-white text-lg">✕</button>
-              </div>
-
-              {/* Info */}
-              {selected.location && (
-                <p className="text-sm mb-3"><span className="text-[var(--text-secondary)]">📍 Lieu :</span> {selected.location}</p>
-              )}
-
-              {selected.traits?.length > 0 && (
-                <div className="mb-4">
-                  <p className="text-xs text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Traits</p>
-                  <div className="flex flex-wrap gap-1">
-                    {selected.traits.map((t) => (
-                      <span key={t} className="text-xs px-2 py-1 bg-lore-600/20 text-lore-400 rounded-full">{t}</span>
-                    ))}
+            <div className="hidden lg:block w-3/5 card sticky top-4 self-start max-h-[calc(100vh-6rem)] overflow-y-auto">
+              <div className="p-5">
+                {/* Header */}
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <h2 className="text-xl font-bold">{selected.name}</h2>
+                    {selected.title && <p className="text-lore-400 text-xs mt-0.5">{selected.title}</p>}
                   </div>
+                  <button onClick={() => { setSelected(null); setRelations([]); }} className="text-[var(--text-secondary)] hover:text-white text-sm">✕</button>
                 </div>
-              )}
 
-              {selected.description && (
-                <div className="mb-4">
-                  <p className="text-xs text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Description</p>
-                  <p className="text-sm whitespace-pre-wrap leading-relaxed">{selected.description}</p>
-                </div>
-              )}
+                {selected.location && (
+                  <p className="text-xs mb-3 text-[var(--text-secondary)]">📍 {selected.location}</p>
+                )}
 
-              {selected.backstory && (
-                <div className="mb-4">
-                  <p className="text-xs text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Backstory</p>
-                  <p className="text-sm whitespace-pre-wrap leading-relaxed">{selected.backstory}</p>
-                </div>
-              )}
+                {selected.traits?.length > 0 && (
+                  <div className="mb-4">
+                    <p className="text-[10px] text-[var(--text-secondary)] mb-1.5 uppercase tracking-wider font-medium">Traits</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {selected.traits.map((t) => (
+                        <span key={t} className="chip chip-active text-[11px]">{t}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
-              {selected.notes && (
-                <div className="mb-4">
-                  <p className="text-xs text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Notes</p>
-                  <p className="text-sm whitespace-pre-wrap leading-relaxed">{selected.notes}</p>
-                </div>
-              )}
+                {selected.description && (
+                  <div className="mb-4">
+                    <p className="text-[10px] text-[var(--text-secondary)] mb-1.5 uppercase tracking-wider font-medium">Description</p>
+                    <p className="text-sm whitespace-pre-wrap leading-relaxed">{selected.description}</p>
+                  </div>
+                )}
 
-              {/* ── Relations ── */}
-              <div className="mt-6 pt-4 border-t border-white/5">
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-xs text-[var(--text-secondary)] uppercase tracking-wider">
-                    Relations ({relations.length})
-                  </p>
-                  {availableTargets.length > 0 && (
-                    <button onClick={openAddRelation}
-                      className="text-xs px-3 py-1.5 bg-lore-600/20 text-lore-400 hover:bg-lore-600/30 rounded-lg transition-colors">
-                      + Ajouter
-                    </button>
+                {selected.backstory && (
+                  <div className="mb-4">
+                    <p className="text-[10px] text-[var(--text-secondary)] mb-1.5 uppercase tracking-wider font-medium">Backstory</p>
+                    <p className="text-sm whitespace-pre-wrap leading-relaxed">{selected.backstory}</p>
+                  </div>
+                )}
+
+                {selected.notes && (
+                  <div className="mb-4">
+                    <p className="text-[10px] text-[var(--text-secondary)] mb-1.5 uppercase tracking-wider font-medium">Notes</p>
+                    <p className="text-sm whitespace-pre-wrap leading-relaxed">{selected.notes}</p>
+                  </div>
+                )}
+
+                {/* ── Relations ── */}
+                <div className="mt-5 pt-4 border-t border-[var(--border)]">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium">
+                      Relations ({relations.length})
+                    </p>
+                    {availableTargets.length > 0 && (
+                      <button onClick={openAddRelation} className="chip chip-active text-[10px] hover:brightness-110">+ Ajouter</button>
+                    )}
+                  </div>
+
+                  {loadingRelations ? (
+                    <div className="flex justify-center py-4">
+                      <div className="animate-spin rounded-full h-5 w-5 border-2 border-lore-500 border-t-transparent" />
+                    </div>
+                  ) : relations.length === 0 ? (
+                    <div className="text-center py-5 text-[var(--text-secondary)]">
+                      <p className="text-lg mb-1">🔗</p>
+                      <p className="text-xs">Aucune relation.</p>
+                      {availableTargets.length > 0 && (
+                        <button onClick={openAddRelation} className="mt-2 text-[11px] text-lore-400 hover:text-lore-300 transition-colors">
+                          Ajouter une relation →
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="space-y-1.5">
+                      {relations.map((rel) => {
+                        const rt = getRelationType(rel.relation_type);
+                        const isSource = rel.source_id === selected.id;
+                        const otherCharId = isSource ? rel.target_id : rel.source_id;
+                        const otherChar = charMap[otherCharId];
+                        const direction = isSource ? "→" : "←";
+
+                        return (
+                          <div key={rel.id} className="flex items-center gap-2.5 rounded-lg p-2.5 group hover:bg-white/[0.02] transition-colors">
+                            <span className={`text-[10px] px-2 py-0.5 rounded-md font-medium whitespace-nowrap ${rt.color}`}>
+                              {rt.icon} {rt.label}
+                            </span>
+                            <span className="text-[var(--text-secondary)] text-[10px]">{direction}</span>
+                            <div className="flex-1 min-w-0">
+                              <button
+                                onClick={() => { if (otherChar) selectCharacter(otherChar); }}
+                                className="font-medium text-xs hover:text-lore-400 transition-colors truncate block"
+                              >
+                                {otherChar?.name || "Inconnu"}
+                              </button>
+                              {rel.description && (
+                                <p className="text-[10px] text-[var(--text-secondary)] truncate">{rel.description}</p>
+                              )}
+                            </div>
+                            <button
+                              onClick={() => handleDeleteRelation(rel.id)}
+                              className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-300 text-[10px] transition-opacity"
+                            >✕</button>
+                          </div>
+                        );
+                      })}
+                    </div>
                   )}
                 </div>
 
-                {loadingRelations ? (
-                  <div className="flex justify-center py-4">
-                    <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-lore-500" />
-                  </div>
-                ) : relations.length === 0 ? (
-                  <div className="text-center py-6 text-[var(--text-secondary)]">
-                    <p className="text-2xl mb-1">🔗</p>
-                    <p className="text-sm">Aucune relation.</p>
-                    {availableTargets.length > 0 && (
-                      <button onClick={openAddRelation}
-                        className="mt-2 text-xs text-lore-400 hover:text-lore-300 transition-colors">
-                        Ajouter une relation →
-                      </button>
-                    )}
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {relations.map((rel) => {
-                      const rt = getRelationType(rel.relation_type);
-                      const isSource = rel.source_id === selected.id;
-                      const otherCharId = isSource ? rel.target_id : rel.source_id;
-                      const otherChar = charMap[otherCharId];
-                      const direction = isSource ? "→" : "←";
-
-                      return (
-                        <div key={rel.id} className="flex items-center gap-3 bg-[var(--bg-secondary)] rounded-lg p-3 group">
-                          <span className={`text-xs px-2 py-1 rounded-full font-medium ${rt.color}`}>
-                            {rt.icon} {rt.label}
-                          </span>
-                          <span className="text-[var(--text-secondary)] text-xs">{direction}</span>
-                          <div className="flex-1 min-w-0">
-                            <button
-                              onClick={() => { if (otherChar) selectCharacter(otherChar); }}
-                              className="font-medium text-sm hover:text-lore-400 transition-colors truncate block"
-                            >
-                              {otherChar?.name || "Inconnu"}
-                            </button>
-                            {rel.description && (
-                              <p className="text-xs text-[var(--text-secondary)] truncate">{rel.description}</p>
-                            )}
-                          </div>
-                          <button
-                            onClick={() => handleDeleteRelation(rel.id)}
-                            className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-300 text-xs transition-opacity"
-                            title="Supprimer la relation"
-                          >
-                            ✕
-                          </button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-
-              {/* Actions */}
-              <div className="flex gap-2 mt-6 pt-4 border-t border-white/5">
-                <button onClick={() => openEdit(selected)} className="flex-1 px-3 py-2 bg-lore-600/20 text-lore-400 hover:bg-lore-600/30 rounded-lg text-sm transition-colors">
-                  ✏️ Modifier
-                </button>
-                <button onClick={() => handleDelete(selected.id, selected.name)} className="px-3 py-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-lg text-sm transition-colors">
-                  🗑️
-                </button>
+                {/* Actions */}
+                <div className="flex gap-2 mt-5 pt-4 border-t border-[var(--border)]">
+                  <button onClick={() => openEdit(selected)} className="btn-ghost flex-1 text-xs !py-2">✏️ Modifier</button>
+                  <button onClick={() => handleDelete(selected.id, selected.name)} className="text-xs px-3 py-2 rounded-lg bg-red-500/8 text-red-400 hover:bg-red-500/15 transition-colors border border-red-500/10">
+                    ✕
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -480,75 +466,67 @@ export default function CharactersPage() {
 
       {/* ── Modal création/édition personnage ── */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-[var(--bg-secondary)] rounded-2xl p-8 w-full max-w-lg border border-white/10 shadow-2xl max-h-[90vh] overflow-y-auto">
-            <h2 className="text-2xl font-bold mb-6">
-              {editing ? `✏️ Modifier ${editing.name}` : "🎭 Nouveau personnage"}
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="glass rounded-2xl p-6 w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
+            <h2 className="text-lg font-bold mb-5">
+              {editing ? `Modifier ${editing.name}` : "Nouveau personnage"}
             </h2>
-            <form onSubmit={handleSave} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+            <form onSubmit={handleSave} className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm text-[var(--text-secondary)] mb-1">Nom *</label>
+                  <label className="block text-[10px] font-medium text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Nom *</label>
                   <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    placeholder="Aragorn" className="w-full px-4 py-3 rounded-lg bg-[var(--bg-card)] border border-white/10 focus:border-lore-500 focus:outline-none" autoFocus />
+                    placeholder="Aragorn" className="input" autoFocus />
                 </div>
                 <div>
-                  <label className="block text-sm text-[var(--text-secondary)] mb-1">Titre</label>
+                  <label className="block text-[10px] font-medium text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Titre</label>
                   <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })}
-                    placeholder="Roi du Gondor" className="w-full px-4 py-3 rounded-lg bg-[var(--bg-card)] border border-white/10 focus:border-lore-500 focus:outline-none" />
+                    placeholder="Roi du Gondor" className="input" />
                 </div>
               </div>
               <div>
-                <label className="block text-sm text-[var(--text-secondary)] mb-1">Lieu</label>
+                <label className="block text-[10px] font-medium text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Lieu</label>
                 <input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })}
-                  placeholder="Minas Tirith" className="w-full px-4 py-3 rounded-lg bg-[var(--bg-card)] border border-white/10 focus:border-lore-500 focus:outline-none" />
+                  placeholder="Minas Tirith" className="input" />
               </div>
               <div>
-                <label className="block text-sm text-[var(--text-secondary)] mb-1">Description</label>
+                <label className="block text-[10px] font-medium text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Description</label>
                 <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  placeholder="Un rôdeur au passé mystérieux..." rows={3}
-                  className="w-full px-4 py-3 rounded-lg bg-[var(--bg-card)] border border-white/10 focus:border-lore-500 focus:outline-none resize-none" />
+                  placeholder="Un rôdeur au passé mystérieux..." rows={3} className="input resize-none" />
               </div>
               <div>
-                <label className="block text-sm text-[var(--text-secondary)] mb-1">Backstory</label>
+                <label className="block text-[10px] font-medium text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Backstory</label>
                 <textarea value={form.backstory} onChange={(e) => setForm({ ...form, backstory: e.target.value })}
-                  placeholder="Né héritier du trône, il a grandi en exil..." rows={3}
-                  className="w-full px-4 py-3 rounded-lg bg-[var(--bg-card)] border border-white/10 focus:border-lore-500 focus:outline-none resize-none" />
+                  placeholder="Né héritier du trône, il a grandi en exil..." rows={3} className="input resize-none" />
               </div>
               <div>
-                <label className="block text-sm text-[var(--text-secondary)] mb-1">Traits de personnalité</label>
+                <label className="block text-[10px] font-medium text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Traits de personnalité</label>
                 <div className="flex gap-2">
                   <input value={traitInput} onChange={(e) => setTraitInput(e.target.value)}
                     onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addTrait(); } }}
-                    placeholder="Courageux, Loyal..."
-                    className="flex-1 px-4 py-2 rounded-lg bg-[var(--bg-card)] border border-white/10 focus:border-lore-500 focus:outline-none text-sm" />
-                  <button type="button" onClick={addTrait} className="px-3 py-2 bg-white/5 rounded-lg text-sm hover:bg-white/10">+</button>
+                    placeholder="Courageux, Loyal..." className="input !py-2 flex-1" />
+                  <button type="button" onClick={addTrait} className="btn-ghost !px-3 !py-2 text-sm">+</button>
                 </div>
                 {form.traits.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-2">
+                  <div className="flex flex-wrap gap-1.5 mt-2">
                     {form.traits.map((t) => (
-                      <span key={t} className="text-xs px-2 py-1 bg-lore-600/20 text-lore-400 rounded-full flex items-center gap-1">
+                      <span key={t} className="chip chip-active text-[11px]">
                         {t}
-                        <button type="button" onClick={() => removeTrait(t)} className="hover:text-red-400">×</button>
+                        <button type="button" onClick={() => removeTrait(t)} className="hover:text-red-300 ml-0.5">×</button>
                       </span>
                     ))}
                   </div>
                 )}
               </div>
               <div>
-                <label className="block text-sm text-[var(--text-secondary)] mb-1">Notes</label>
+                <label className="block text-[10px] font-medium text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Notes</label>
                 <textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                  placeholder="Notes libres..." rows={2}
-                  className="w-full px-4 py-3 rounded-lg bg-[var(--bg-card)] border border-white/10 focus:border-lore-500 focus:outline-none resize-none" />
+                  placeholder="Notes libres..." rows={2} className="input resize-none" />
               </div>
               {error && <p className="text-red-400 text-sm">{error}</p>}
-              <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setShowModal(false)}
-                  className="flex-1 px-4 py-3 border border-white/10 rounded-lg hover:bg-white/5 transition-colors">
-                  Annuler
-                </button>
-                <button type="submit" disabled={saving}
-                  className="flex-1 px-4 py-3 bg-lore-600 hover:bg-lore-700 rounded-lg font-medium transition-colors disabled:opacity-50">
+              <div className="flex gap-3 pt-1">
+                <button type="button" onClick={() => setShowModal(false)} className="btn-ghost flex-1">Annuler</button>
+                <button type="submit" disabled={saving} className="btn-primary flex-1 disabled:opacity-50">
                   {saving ? "Sauvegarde..." : editing ? "Sauvegarder" : "Créer"}
                 </button>
               </div>
@@ -559,18 +537,18 @@ export default function CharactersPage() {
 
       {/* ── Modal ajout relation ── */}
       {showRelationModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-[var(--bg-secondary)] rounded-2xl p-8 w-full max-w-md border border-white/10 shadow-2xl">
-            <h2 className="text-2xl font-bold mb-2">🔗 Nouvelle relation</h2>
-            <p className="text-sm text-[var(--text-secondary)] mb-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="glass rounded-2xl p-6 w-full max-w-md shadow-2xl">
+            <h2 className="text-lg font-bold mb-1">Nouvelle relation</h2>
+            <p className="text-xs text-[var(--text-secondary)] mb-5">
               Depuis <span className="text-lore-400 font-medium">{selected?.name}</span>
             </p>
             <form onSubmit={handleAddRelation} className="space-y-4">
               <div>
-                <label className="block text-sm text-[var(--text-secondary)] mb-1">Personnage cible *</label>
+                <label className="block text-[10px] font-medium text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Personnage cible *</label>
                 <select value={relationForm.target_id}
                   onChange={(e) => setRelationForm({ ...relationForm, target_id: e.target.value })}
-                  className="w-full px-4 py-3 rounded-lg bg-[var(--bg-card)] border border-white/10 focus:border-lore-500 focus:outline-none">
+                  className="input">
                   <option value="">— Choisir —</option>
                   {availableTargets.map((c) => (
                     <option key={c.id} value={c.id}>{c.name}{c.title ? ` (${c.title})` : ""}</option>
@@ -578,21 +556,21 @@ export default function CharactersPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm text-[var(--text-secondary)] mb-2">Type de relation *</label>
-                <div className="max-h-60 overflow-y-auto space-y-3 pr-1 custom-scrollbar">
+                <label className="block text-[10px] font-medium text-[var(--text-secondary)] mb-2 uppercase tracking-wider">Type de relation *</label>
+                <div className="max-h-56 overflow-y-auto space-y-3 pr-1">
                   {RELATION_CATEGORIES.map((cat) => (
                     <div key={cat.label}>
-                      <p className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] mb-1.5">{cat.label}</p>
-                      <div className="grid grid-cols-2 gap-1.5">
+                      <p className="text-[9px] uppercase tracking-wider text-[var(--text-secondary)] mb-1.5 font-medium">{cat.label}</p>
+                      <div className="grid grid-cols-2 gap-1">
                         {cat.types.map((rt) => (
                           <button key={rt.value} type="button"
                             onClick={() => setRelationForm({ ...relationForm, relation_type: rt.value })}
-                            className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs transition-all border ${
+                            className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md text-[11px] transition-all border ${
                               relationForm.relation_type === rt.value
                                 ? `${rt.color} border-current`
-                                : "border-white/5 text-[var(--text-secondary)] hover:bg-white/5"
+                                : "border-[var(--border)] text-[var(--text-secondary)] hover:bg-white/[0.03]"
                             }`}>
-                            <span>{rt.icon}</span>
+                            <span className="text-xs">{rt.icon}</span>
                             <span className="truncate">{rt.label}</span>
                           </button>
                         ))}
@@ -602,20 +580,15 @@ export default function CharactersPage() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm text-[var(--text-secondary)] mb-1">Description (optionnel)</label>
+                <label className="block text-[10px] font-medium text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Description (optionnel)</label>
                 <input value={relationForm.description}
                   onChange={(e) => setRelationForm({ ...relationForm, description: e.target.value })}
-                  placeholder="Frères d'armes depuis la bataille de..."
-                  className="w-full px-4 py-3 rounded-lg bg-[var(--bg-card)] border border-white/10 focus:border-lore-500 focus:outline-none" />
+                  placeholder="Frères d'armes depuis la bataille de..." className="input" />
               </div>
               {relationError && <p className="text-red-400 text-sm">{relationError}</p>}
-              <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setShowRelationModal(false)}
-                  className="flex-1 px-4 py-3 border border-white/10 rounded-lg hover:bg-white/5 transition-colors">
-                  Annuler
-                </button>
-                <button type="submit" disabled={savingRelation}
-                  className="flex-1 px-4 py-3 bg-lore-600 hover:bg-lore-700 rounded-lg font-medium transition-colors disabled:opacity-50">
+              <div className="flex gap-3 pt-1">
+                <button type="button" onClick={() => setShowRelationModal(false)} className="btn-ghost flex-1">Annuler</button>
+                <button type="submit" disabled={savingRelation} className="btn-primary flex-1 disabled:opacity-50">
                   {savingRelation ? "Ajout..." : "Ajouter"}
                 </button>
               </div>

@@ -7,7 +7,7 @@ from datetime import datetime
 class UniverseCreate(BaseModel):
     name: str
     description: str = ""
-    genre: str = "fantasy"  # fantasy, scifi, urban_fantasy, other
+    genre: str = "fantasy"  # comma-separated tags: "fantasy,dark romance,horreur"
 
 
 class UniverseUpdate(BaseModel):
