@@ -2,20 +2,92 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
 import { characters as charsApi } from "@/lib/api";
 
 const EMPTY_FORM = { name: "", title: "", description: "", traits: [], location: "", backstory: "", notes: "" };
 
-const RELATION_TYPES = [
-  { value: "ally", label: "Allié", icon: "🤝", color: "text-green-400 bg-green-500/15" },
-  { value: "enemy", label: "Ennemi", icon: "⚔️", color: "text-red-400 bg-red-500/15" },
-  { value: "family", label: "Famille", icon: "👨‍👩‍👧", color: "text-blue-400 bg-blue-500/15" },
-  { value: "rival", label: "Rival", icon: "🔥", color: "text-orange-400 bg-orange-500/15" },
-  { value: "mentor", label: "Mentor", icon: "🎓", color: "text-purple-400 bg-purple-500/15" },
-  { value: "lover", label: "Amant·e", icon: "❤️", color: "text-pink-400 bg-pink-500/15" },
-  { value: "servant", label: "Serviteur", icon: "🛡️", color: "text-gray-400 bg-gray-500/15" },
-  { value: "master", label: "Maître", icon: "👑", color: "text-yellow-400 bg-yellow-500/15" },
+// ── Catégories de relations (couvre TOUS les genres littéraires) ──
+const RELATION_CATEGORIES = [
+  {
+    label: "Liens sociaux",
+    types: [
+      { value: "ally", label: "Allié", icon: "🤝", color: "text-green-400 bg-green-500/15" },
+      { value: "enemy", label: "Ennemi", icon: "⚔️", color: "text-red-400 bg-red-500/15" },
+      { value: "rival", label: "Rival", icon: "🔥", color: "text-orange-400 bg-orange-500/15" },
+      { value: "friend", label: "Ami·e", icon: "😊", color: "text-cyan-400 bg-cyan-500/15" },
+      { value: "betrayer", label: "Traître", icon: "🗡️", color: "text-rose-400 bg-rose-500/15" },
+      { value: "protector", label: "Protecteur", icon: "🛡️", color: "text-sky-400 bg-sky-500/15" },
+    ],
+  },
+  {
+    label: "Famille & Sang",
+    types: [
+      { value: "family", label: "Famille", icon: "👨‍👩‍👧", color: "text-blue-400 bg-blue-500/15" },
+      { value: "parent", label: "Parent", icon: "👤", color: "text-blue-300 bg-blue-400/15" },
+      { value: "child", label: "Enfant", icon: "👶", color: "text-blue-200 bg-blue-300/15" },
+      { value: "sibling", label: "Frère/Sœur", icon: "👫", color: "text-indigo-400 bg-indigo-500/15" },
+      { value: "twin", label: "Jumeau·elle", icon: "♊", color: "text-indigo-300 bg-indigo-400/15" },
+      { value: "ancestor", label: "Ancêtre", icon: "🏛️", color: "text-stone-400 bg-stone-500/15" },
+    ],
+  },
+  {
+    label: "Pouvoir & Hiérarchie",
+    types: [
+      { value: "mentor", label: "Mentor", icon: "🎓", color: "text-purple-400 bg-purple-500/15" },
+      { value: "apprentice", label: "Apprenti·e", icon: "📚", color: "text-purple-300 bg-purple-400/15" },
+      { value: "master", label: "Maître", icon: "👑", color: "text-yellow-400 bg-yellow-500/15" },
+      { value: "servant", label: "Serviteur", icon: "🙇", color: "text-gray-400 bg-gray-500/15" },
+      { value: "vassal", label: "Vassal", icon: "⚜️", color: "text-amber-400 bg-amber-500/15" },
+      { value: "captor", label: "Geôlier", icon: "🔒", color: "text-zinc-400 bg-zinc-500/15" },
+      { value: "prisoner", label: "Prisonnier·e", icon: "⛓️", color: "text-zinc-300 bg-zinc-400/15" },
+    ],
+  },
+  {
+    label: "Romance & Désir",
+    types: [
+      { value: "lover", label: "Amant·e", icon: "❤️", color: "text-pink-400 bg-pink-500/15" },
+      { value: "ex", label: "Ex", icon: "💔", color: "text-pink-300 bg-pink-400/15" },
+      { value: "crush", label: "Crush", icon: "💘", color: "text-rose-300 bg-rose-400/15" },
+      { value: "spouse", label: "Époux·se", icon: "💍", color: "text-pink-200 bg-pink-300/15" },
+      { value: "forbidden", label: "Interdit", icon: "🚫❤️", color: "text-red-300 bg-red-400/15" },
+      { value: "obsession", label: "Obsession", icon: "🖤", color: "text-fuchsia-400 bg-fuchsia-500/15" },
+      { value: "soulmate", label: "Âme sœur", icon: "✨", color: "text-violet-400 bg-violet-500/15" },
+      { value: "dominant", label: "Dominant·e", icon: "🔱", color: "text-red-500 bg-red-600/15" },
+      { value: "submissive", label: "Soumis·e", icon: "🌹", color: "text-red-200 bg-red-300/15" },
+      { value: "seducer", label: "Séducteur·rice", icon: "💋", color: "text-fuchsia-300 bg-fuchsia-400/15" },
+    ],
+  },
+  {
+    label: "Surnaturel & Fantasy",
+    types: [
+      { value: "bonded", label: "Lié·e magique", icon: "🔮", color: "text-violet-400 bg-violet-500/15" },
+      { value: "summoner", label: "Invocateur", icon: "🌀", color: "text-teal-400 bg-teal-500/15" },
+      { value: "familiar", label: "Familier", icon: "🐾", color: "text-emerald-400 bg-emerald-500/15" },
+      { value: "creator", label: "Créateur·rice", icon: "⚡", color: "text-yellow-300 bg-yellow-400/15" },
+      { value: "creation", label: "Création", icon: "🤖", color: "text-cyan-300 bg-cyan-400/15" },
+      { value: "host", label: "Hôte", icon: "🧬", color: "text-lime-400 bg-lime-500/15" },
+      { value: "parasite", label: "Parasite", icon: "🦠", color: "text-green-300 bg-green-400/15" },
+      { value: "deity", label: "Divinité", icon: "☀️", color: "text-amber-300 bg-amber-400/15" },
+      { value: "worshipper", label: "Adorateur·rice", icon: "🙏", color: "text-amber-200 bg-amber-300/15" },
+    ],
+  },
+  {
+    label: "Conflit & Sombre",
+    types: [
+      { value: "nemesis", label: "Némésis", icon: "💀", color: "text-red-500 bg-red-600/15" },
+      { value: "manipulator", label: "Manipulateur", icon: "🎭", color: "text-amber-400 bg-amber-500/15" },
+      { value: "victim", label: "Victime", icon: "😢", color: "text-slate-400 bg-slate-500/15" },
+      { value: "accomplice", label: "Complice", icon: "🤫", color: "text-neutral-400 bg-neutral-500/15" },
+      { value: "hunter", label: "Chasseur", icon: "🏹", color: "text-orange-500 bg-orange-600/15" },
+      { value: "prey", label: "Proie", icon: "🎯", color: "text-orange-300 bg-orange-400/15" },
+      { value: "torturer", label: "Bourreau", icon: "⚰️", color: "text-gray-500 bg-gray-600/15" },
+    ],
+  },
 ];
+
+// Flat list pour lookup rapide
+const RELATION_TYPES = RELATION_CATEGORIES.flatMap((c) => c.types);
 
 const getRelationType = (type) => RELATION_TYPES.find((r) => r.value === type) || { value: type, label: type, icon: "🔗", color: "text-white/60 bg-white/5" };
 
@@ -206,12 +278,20 @@ export default function CharactersPage() {
             {characters.length} personnage{characters.length !== 1 ? "s" : ""} dans cet univers
           </p>
         </div>
-        <button
-          onClick={openCreate}
-          className="px-4 py-2 bg-lore-600 hover:bg-lore-700 rounded-lg font-medium transition-colors"
-        >
-          + Nouveau personnage
-        </button>
+        <div className="flex gap-3">
+          <Link
+            href={`/universe/${universeId}/characters/graph`}
+            className="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg font-medium transition-colors border border-white/10 text-sm flex items-center gap-2"
+          >
+            🕸️ Graphe
+          </Link>
+          <button
+            onClick={openCreate}
+            className="px-4 py-2 bg-lore-600 hover:bg-lore-700 rounded-lg font-medium transition-colors"
+          >
+            + Nouveau personnage
+          </button>
+        </div>
       </div>
 
       {characters.length === 0 ? (
@@ -499,18 +579,25 @@ export default function CharactersPage() {
               </div>
               <div>
                 <label className="block text-sm text-[var(--text-secondary)] mb-2">Type de relation *</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {RELATION_TYPES.map((rt) => (
-                    <button key={rt.value} type="button"
-                      onClick={() => setRelationForm({ ...relationForm, relation_type: rt.value })}
-                      className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all border ${
-                        relationForm.relation_type === rt.value
-                          ? `${rt.color} border-current`
-                          : "border-white/5 text-[var(--text-secondary)] hover:bg-white/5"
-                      }`}>
-                      <span>{rt.icon}</span>
-                      <span>{rt.label}</span>
-                    </button>
+                <div className="max-h-60 overflow-y-auto space-y-3 pr-1 custom-scrollbar">
+                  {RELATION_CATEGORIES.map((cat) => (
+                    <div key={cat.label}>
+                      <p className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] mb-1.5">{cat.label}</p>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        {cat.types.map((rt) => (
+                          <button key={rt.value} type="button"
+                            onClick={() => setRelationForm({ ...relationForm, relation_type: rt.value })}
+                            className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs transition-all border ${
+                              relationForm.relation_type === rt.value
+                                ? `${rt.color} border-current`
+                                : "border-white/5 text-[var(--text-secondary)] hover:bg-white/5"
+                            }`}>
+                            <span>{rt.icon}</span>
+                            <span className="truncate">{rt.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
