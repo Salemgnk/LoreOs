@@ -17,8 +17,8 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:3000"
 
     # Embeddings
-    embedding_model: str = "text-embedding-004"
-    embedding_dimension: int = 768
+    embedding_model: str = "gemini-embedding-001"
+    embedding_dimension: int = 3072
 
     # LLM
     chat_model: str = "gemini-2.0-flash"

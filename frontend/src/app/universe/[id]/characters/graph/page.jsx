@@ -12,6 +12,8 @@ import {
   useEdgesState,
   MarkerType,
   Panel,
+  Handle,
+  Position,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { characters as charsApi } from "@/lib/api";
@@ -83,6 +85,12 @@ function CharacterNode({ data }) {
       className="relative group"
       style={{ minWidth: 140 }}
     >
+      {/* Handles pour les arêtes (invisibles mais nécessaires) */}
+      <Handle type="target" position={Position.Top} className="!bg-transparent !border-0 !w-3 !h-3" />
+      <Handle type="source" position={Position.Bottom} className="!bg-transparent !border-0 !w-3 !h-3" />
+      <Handle type="target" position={Position.Left} id="left" className="!bg-transparent !border-0 !w-3 !h-3" />
+      <Handle type="source" position={Position.Right} id="right" className="!bg-transparent !border-0 !w-3 !h-3" />
+
       <div
         className="rounded-xl px-4 py-3 border shadow-lg backdrop-blur-sm transition-transform hover:scale-105"
         style={{

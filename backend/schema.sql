@@ -109,7 +109,7 @@ CREATE TABLE chunks (
     source_label TEXT DEFAULT '',
     content      TEXT NOT NULL,
     chunk_index  INTEGER DEFAULT 0,
-    embedding    vector(768),
+    embedding    vector(3072),
     created_at   TIMESTAMPTZ DEFAULT now()
 );
 
@@ -126,7 +126,7 @@ CREATE INDEX idx_chunks_embedding ON chunks
 -- ──────────────────────────────────────────────────────────────
 
 CREATE OR REPLACE FUNCTION match_chunks(
-    query_embedding     vector(768),
+    query_embedding     vector(3072),
     match_universe_id   UUID,
     match_count         INTEGER DEFAULT 5,
     match_threshold     DOUBLE PRECISION DEFAULT 0.7
