@@ -38,7 +38,7 @@ export default function UniverseDashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-lore-500" />
+        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[var(--accent)]" />
       </div>
     );
   }
@@ -52,11 +52,11 @@ export default function UniverseDashboard() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-1">{universe?.name || "Dashboard"}</h1>
+        <h1 className="font-heading text-3xl font-bold tracking-wide mb-1">{universe?.name || "Dashboard"}</h1>
         <p className="text-[var(--text-secondary)]">
           {universe?.description || "Vue d'ensemble de ton univers."}
         </p>
-        <span className="inline-block mt-2 text-xs px-2 py-1 bg-lore-600/20 text-lore-400 rounded">
+        <span className="inline-block mt-2 text-xs px-2 py-1 bg-[var(--accent)]/10 text-[var(--accent)] rounded">
           {universe?.genre}
         </span>
       </div>
@@ -66,14 +66,14 @@ export default function UniverseDashboard() {
           <Link
             key={stat.label}
             href={stat.href}
-            className="bg-[var(--bg-card)] rounded-xl p-6 border border-white/5 hover:border-lore-500/30 transition-all group"
+            className="bg-[var(--bg-card)] rounded-xl p-6 border border-white/5 hover:border-[var(--accent)]/30 transition-all group"
           >
             <div className="flex items-center gap-3 mb-2">
               <span className="text-2xl">{stat.icon}</span>
               <span className="text-[var(--text-secondary)] text-sm">{stat.label}</span>
             </div>
             <p className="text-3xl font-bold">{stat.value}</p>
-            <p className="text-xs text-[var(--text-secondary)] mt-2 group-hover:text-lore-400 transition-colors">
+            <p className="text-xs text-[var(--text-secondary)] mt-2 group-hover:text-[var(--accent)] transition-colors">
               Voir →
             </p>
           </Link>
@@ -81,11 +81,11 @@ export default function UniverseDashboard() {
       </div>
 
       {/* Actions rapides */}
-      <h2 className="text-xl font-semibold mb-4">⚡ Actions rapides</h2>
+      <h2 className="font-heading text-xl font-semibold tracking-wide mb-4">⚡ Actions rapides</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Link
           href={`/universe/${id}/characters`}
-          className="flex items-center gap-4 bg-[var(--bg-card)] rounded-xl p-5 border border-white/5 hover:border-lore-500/30 transition-all"
+          className="flex items-center gap-4 bg-[var(--bg-card)] rounded-xl p-5 border border-white/5 hover:border-[var(--accent)]/30 transition-all"
         >
           <span className="text-3xl">👥</span>
           <div>
@@ -95,7 +95,7 @@ export default function UniverseDashboard() {
         </Link>
         <Link
           href={`/universe/${id}/map`}
-          className="flex items-center gap-4 bg-[var(--bg-card)] rounded-xl p-5 border border-white/5 hover:border-lore-500/30 transition-all"
+          className="flex items-center gap-4 bg-[var(--bg-card)] rounded-xl p-5 border border-white/5 hover:border-[var(--accent)]/30 transition-all"
         >
           <span className="text-3xl">🗺️</span>
           <div>
@@ -105,7 +105,7 @@ export default function UniverseDashboard() {
         </Link>
         <Link
           href={`/universe/${id}/chat`}
-          className="flex items-center gap-4 bg-[var(--bg-card)] rounded-xl p-5 border border-white/5 hover:border-lore-500/30 transition-all"
+          className="flex items-center gap-4 bg-[var(--bg-card)] rounded-xl p-5 border border-white/5 hover:border-[var(--accent)]/30 transition-all"
         >
           <span className="text-3xl">🧠</span>
           <div>

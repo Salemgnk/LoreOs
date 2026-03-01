@@ -3,16 +3,17 @@
 @tailwind utilities;
 
 :root {
-  --bg-primary: #0a0b10;
-  --bg-secondary: #12141f;
-  --bg-card: #181b2a;
-  --bg-elevated: #1e2235;
-  --text-primary: #eceef4;
-  --text-secondary: #7b819a;
-  --border: rgba(255, 255, 255, 0.06);
-  --border-hover: rgba(255, 255, 255, 0.12);
-  --accent: #5c7cfa;
-  --glow: rgba(92, 124, 250, 0.15);
+  --bg-primary: #0f0e0b;
+  --bg-secondary: #161513;
+  --bg-card: #1c1a16;
+  --bg-elevated: #232019;
+  --text-primary: #e8dcc8;
+  --text-secondary: #7a7062;
+  --border: rgba(196, 163, 90, 0.08);
+  --border-hover: rgba(196, 163, 90, 0.18);
+  --accent: #c4a35a;
+  --accent-dim: #a08545;
+  --glow: rgba(196, 163, 90, 0.10);
 }
 
 body {
@@ -20,11 +21,17 @@ body {
   font-family: "Inter", system-ui, -apple-system, sans-serif;
 }
 
+/* ── Heading font ── */
+.font-heading {
+  font-family: "Cinzel", "Palatino Linotype", "Book Antiqua", Palatino, serif;
+  letter-spacing: 0.04em;
+}
+
 /* ── Scrollbar ── */
-::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 99px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
+::-webkit-scrollbar-thumb { background: rgba(196,163,90,0.1); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(196,163,90,0.2); }
 
 /* ── Focus ── */
 *:focus-visible {
@@ -35,7 +42,7 @@ body {
 
 /* ── Glass card utility ── */
 .glass {
-  background: rgba(18, 20, 31, 0.6);
+  background: rgba(22, 21, 19, 0.7);
   backdrop-filter: blur(16px);
   border: 1px solid var(--border);
 }
@@ -43,21 +50,22 @@ body {
 /* ── Smooth page transitions ── */
 .page-enter { animation: fadeUp 0.25s ease-out; }
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 /* ── Tag chip base ── */
 .chip {
   @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-all;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(196, 163, 90, 0.06);
+  border: 1px solid rgba(196, 163, 90, 0.1);
+  color: var(--text-secondary);
 }
-.chip:hover { background: rgba(255, 255, 255, 0.08); }
+.chip:hover { background: rgba(196, 163, 90, 0.1); color: var(--text-primary); }
 .chip-active {
-  background: rgba(92, 124, 250, 0.15);
-  border-color: rgba(92, 124, 250, 0.3);
-  color: #91a7ff;
+  background: rgba(196, 163, 90, 0.12);
+  border-color: rgba(196, 163, 90, 0.25);
+  color: var(--accent);
 }
 
 /* ── Input base ── */
@@ -72,17 +80,18 @@ body {
   outline: none;
   box-shadow: 0 0 0 3px var(--glow);
 }
-.input::placeholder { color: var(--text-secondary); opacity: 0.6; }
+.input::placeholder { color: var(--text-secondary); opacity: 0.5; }
 
 /* ── Button variants ── */
 .btn-primary {
   @apply px-4 py-2.5 rounded-lg font-medium text-sm transition-all;
-  background: linear-gradient(135deg, #4c6ef5, #5c7cfa);
-  box-shadow: 0 2px 8px rgba(76, 110, 245, 0.25);
+  background: var(--accent);
+  color: #0f0e0b;
+  box-shadow: 0 2px 8px rgba(196, 163, 90, 0.2);
 }
 .btn-primary:hover {
-  background: linear-gradient(135deg, #4263eb, #4c6ef5);
-  box-shadow: 0 4px 16px rgba(76, 110, 245, 0.35);
+  background: #d4b36a;
+  box-shadow: 0 4px 16px rgba(196, 163, 90, 0.3);
   transform: translateY(-1px);
 }
 .btn-primary:active { transform: translateY(0); }
@@ -93,7 +102,7 @@ body {
   border: 1px solid var(--border);
 }
 .btn-ghost:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(196, 163, 90, 0.05);
   color: var(--text-primary);
   border-color: var(--border-hover);
 }
@@ -107,7 +116,21 @@ body {
 }
 .card:hover {
   border-color: var(--border-hover);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+}
+
+/* ── Avatar initials circle ── */
+.avatar {
+  @apply inline-flex items-center justify-center rounded-full font-medium shrink-0;
+  background: rgba(196, 163, 90, 0.1);
+  border: 1px solid rgba(196, 163, 90, 0.2);
+  color: var(--accent);
+}
+
+/* ── Section label ── */
+.section-label {
+  @apply text-[10px] uppercase tracking-widest font-medium mb-2;
+  color: var(--text-secondary);
 }
 
 /* ── React Flow overrides ── */

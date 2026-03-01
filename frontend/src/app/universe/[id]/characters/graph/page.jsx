@@ -78,34 +78,42 @@ const getStyle = (type) => RELATION_STYLE[type] || { color: "#6b7280", label: ty
 
 // ── Custom node ──
 
+function getInitials(name) {
+  if (!name) return "?";
+  return name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
+}
+
 function CharacterNode({ data }) {
   const relCount = data.relationCount || 0;
+  const initials = getInitials(data.name);
   return (
-    <div className="relative group" style={{ minWidth: 130 }}>
+    <div className="relative group flex flex-col items-center" style={{ minWidth: 90 }}>
       <Handle type="target" position={Position.Top} className="!bg-transparent !border-0 !w-3 !h-3" />
       <Handle type="source" position={Position.Bottom} className="!bg-transparent !border-0 !w-3 !h-3" />
       <Handle type="target" position={Position.Left} id="left" className="!bg-transparent !border-0 !w-3 !h-3" />
       <Handle type="source" position={Position.Right} id="right" className="!bg-transparent !border-0 !w-3 !h-3" />
 
+      {/* Avatar circle */}
       <div
-        className="rounded-xl px-3.5 py-2.5 border backdrop-blur-sm transition-all hover:scale-105"
+        className="w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold tracking-wide transition-all group-hover:scale-110"
         style={{
-          background: data.highlight ? "rgba(92, 124, 250, 0.12)" : "rgba(24, 27, 42, 0.95)",
-          borderColor: data.highlight ? "rgba(92, 124, 250, 0.4)" : "var(--border)",
-          boxShadow: data.highlight ? "0 0 20px rgba(92, 124, 250, 0.2)" : "0 4px 20px rgba(0,0,0,0.3)",
+          background: data.highlight ? "rgba(196,163,90,0.25)" : "rgba(196,163,90,0.12)",
+          border: data.highlight ? "2px solid rgba(196,163,90,0.7)" : "2px solid rgba(196,163,90,0.3)",
+          color: "var(--accent)",
+          boxShadow: data.highlight ? "0 0 18px rgba(196,163,90,0.25)" : "0 4px 12px rgba(0,0,0,0.3)",
         }}
       >
-        <p className="font-semibold text-xs text-[var(--text-primary)] text-center truncate">{data.name}</p>
+        {initials}
+      </div>
+
+      {/* Name label */}
+      <div className="mt-1.5 text-center max-w-[100px]">
+        <p className="font-heading text-[10px] text-[var(--text-primary)] uppercase tracking-wider truncate font-semibold">{data.name}</p>
         {data.title && (
-          <p className="text-[10px] text-center text-lore-400 truncate">{data.title}</p>
-        )}
-        {data.location && (
-          <p className="text-[9px] text-center text-[var(--text-secondary)] truncate">📍 {data.location}</p>
+          <p className="text-[9px] text-[var(--accent)] italic truncate">{data.title}</p>
         )}
         {relCount > 0 && (
-          <p className="text-[9px] text-center text-[var(--text-secondary)] mt-0.5 opacity-60">
-            {relCount} rel.
-          </p>
+          <p className="text-[8px] text-[var(--text-secondary)] opacity-60">{relCount} rel.</p>
         )}
       </div>
     </div>
@@ -240,7 +248,7 @@ export default function GraphPage() {
           target: r.target_id,
           label: `${style.icon} ${style.label}`,
           labelStyle: { fontSize: 9, fill: style.color, fontWeight: 600 },
-          labelBgStyle: { fill: "rgba(10,11,16,0.92)", fillOpacity: 1 },
+          labelBgStyle: { fill: "rgba(15,14,11,0.92)", fillOpacity: 1 },
           labelBgPadding: [5, 3],
           labelBgBorderRadius: 4,
           style: { stroke: style.color, strokeWidth: 1.5 },
@@ -282,7 +290,7 @@ export default function GraphPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[80vh]">
-        <div className="animate-spin rounded-full h-10 w-10 border-2 border-lore-500 border-t-transparent" />
+        <div className="animate-spin rounded-full h-10 w-10 border-2 border-[var(--accent)] border-t-transparent" />
       </div>
     );
   }
@@ -291,7 +299,7 @@ export default function GraphPage() {
     return (
       <div className="flex items-center justify-center h-[80vh]">
         <div className="card p-10 text-center">
-          <div className="w-14 h-14 rounded-2xl bg-lore-600/10 flex items-center justify-center mx-auto mb-4">
+          <div className="w-14 h-14 rounded-2xl bg-[var(--accent)]/10 flex items-center justify-center mx-auto mb-4">
             <span className="text-2xl">🕸️</span>
           </div>
           <p className="font-medium mb-1">Aucun personnage</p>
@@ -309,7 +317,7 @@ export default function GraphPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Graphe des relations</h1>
+          <h1 className="font-heading text-2xl font-bold tracking-wide">Graphe des Relations</h1>
           <p className="text-[var(--text-secondary)] text-xs mt-0.5">
             {characters.length} personnage{characters.length !== 1 ? "s" : ""} · {allRelations.length} relation{allRelations.length !== 1 ? "s" : ""}
           </p>
@@ -320,7 +328,7 @@ export default function GraphPage() {
       </div>
 
       {/* Graph */}
-      <div className="flex-1 rounded-xl overflow-hidden border border-[var(--border)]" style={{ background: "rgba(10,10,15,0.8)" }}>
+      <div className="flex-1 rounded-xl overflow-hidden border border-[var(--border)]" style={{ background: "rgba(15,14,11,0.9)" }}>
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -337,16 +345,16 @@ export default function GraphPage() {
             type: "smoothstep",
           }}
         >
-          <Background color="rgba(255,255,255,0.03)" gap={30} />
+          <Background color="rgba(196,163,90,0.03)" gap={30} />
           <Controls
-            style={{ background: "rgba(30,30,40,0.9)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12 }}
+            style={{ background: "rgba(28,26,22,0.95)", border: "1px solid rgba(196,163,90,0.15)", borderRadius: 12 }}
           />
           <MiniMap
-            nodeColor={() => "#5c7cfa"}
+            nodeColor={() => "#c4a35a"}
             maskColor="rgba(0,0,0,0.7)"
             style={{
-              background: "rgba(20,20,30,0.9)",
-              border: "1px solid rgba(255,255,255,0.1)",
+              background: "rgba(28,26,22,0.95)",
+              border: "1px solid rgba(196,163,90,0.15)",
               borderRadius: 12,
             }}
           />
@@ -357,7 +365,7 @@ export default function GraphPage() {
               <div className="flex items-center justify-between mb-2">
                 <p className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] font-medium">Filtrer</p>
                 {activeFilters.size > 0 && (
-                  <button onClick={() => setActiveFilters(new Set())} className="text-[10px] text-lore-400 hover:text-lore-300 transition-colors">
+                  <button onClick={() => setActiveFilters(new Set())} className="text-[10px] text-[var(--accent)] hover:text-[var(--accent-dim)] transition-colors">
                     Tout afficher
                   </button>
                 )}
@@ -399,7 +407,7 @@ export default function GraphPage() {
               <p>🏷️ <span className="text-[var(--text-secondary)]">Types:</span> {usedTypes.length}</p>
               {selectedNode && (
                 <div className="pt-1 mt-1 border-t border-[var(--border)]">
-                  <p className="text-lore-400 font-medium">
+                  <p className="text-[var(--accent)] font-medium">
                     {characters.find((c) => c.id === selectedNode)?.name}
                   </p>
                   <p className="text-[var(--text-secondary)]">

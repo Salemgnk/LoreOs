@@ -130,7 +130,7 @@ export default function MapPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-lore-500" />
+        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[var(--accent)]" />
       </div>
     );
   }
@@ -139,13 +139,13 @@ export default function MapPage() {
     <div>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold">🗺️ Cartes</h1>
+          <h1 className="font-heading text-3xl font-bold tracking-wide">🗺️ Cartes</h1>
           <p className="text-[var(--text-secondary)]">
             {mapList.length} carte{mapList.length !== 1 ? "s" : ""} dans cet univers
           </p>
         </div>
         <button onClick={() => { setError(""); setShowMapModal(true); }}
-          className="px-4 py-2 bg-lore-600 hover:bg-lore-700 rounded-lg font-medium transition-colors">
+          className="btn-primary !rounded-lg">
           + Nouvelle carte
         </button>
       </div>
@@ -156,7 +156,7 @@ export default function MapPage() {
           <p>Aucune carte pour l'instant.</p>
           <p className="text-sm mt-2">Crée ta première carte pour commencer à mapper ton monde.</p>
           <button onClick={() => { setError(""); setShowMapModal(true); }}
-            className="mt-4 px-6 py-3 bg-lore-600 hover:bg-lore-700 rounded-lg font-medium transition-colors">
+            className="btn-primary mt-4 !px-6 !py-3 !rounded-lg">
             🗺️ Créer une carte
           </button>
         </div>
@@ -167,7 +167,7 @@ export default function MapPage() {
             {mapList.map((m) => (
               <div key={m.id} onClick={() => selectMap(m)}
                 className={`bg-[var(--bg-card)] rounded-xl p-4 border cursor-pointer transition-all group ${
-                  selectedMap?.id === m.id ? "border-lore-500/50 ring-1 ring-lore-500/20" : "border-white/5 hover:border-white/10"
+                  selectedMap?.id === m.id ? "border-[var(--accent)]/50 ring-1 ring-[var(--accent)]/20" : "border-white/5 hover:border-white/10"
                 }`}>
                 <div className="flex items-start justify-between">
                   <div>
@@ -196,7 +196,7 @@ export default function MapPage() {
                   )}
                 </div>
                 <button onClick={() => { setError(""); setMarkerForm(EMPTY_MARKER); setShowMarkerModal(true); }}
-                  className="px-3 py-2 bg-lore-600/20 text-lore-400 hover:bg-lore-600/30 rounded-lg text-sm transition-colors">
+                  className="px-3 py-2 bg-[var(--accent)]/10 text-[var(--accent)] hover:bg-[var(--accent)]/20 rounded-lg text-sm transition-colors">
                   + Ajouter un lieu
                 </button>
               </div>
@@ -243,20 +243,20 @@ export default function MapPage() {
                 <label className="block text-sm text-[var(--text-secondary)] mb-1">Nom *</label>
                 <input value={mapForm.name} onChange={(e) => setMapForm({ ...mapForm, name: e.target.value })}
                   placeholder="Carte du Continent Nord" autoFocus
-                  className="w-full px-4 py-3 rounded-lg bg-[var(--bg-card)] border border-white/10 focus:border-lore-500 focus:outline-none" />
+                  className="w-full px-4 py-3 rounded-lg bg-[var(--bg-card)] border border-white/10 focus:border-[var(--accent)] focus:outline-none" />
               </div>
               <div>
                 <label className="block text-sm text-[var(--text-secondary)] mb-1">Description</label>
                 <textarea value={mapForm.description} onChange={(e) => setMapForm({ ...mapForm, description: e.target.value })}
                   placeholder="Les terres gelées au nord du monde connu..." rows={3}
-                  className="w-full px-4 py-3 rounded-lg bg-[var(--bg-card)] border border-white/10 focus:border-lore-500 focus:outline-none resize-none" />
+                  className="w-full px-4 py-3 rounded-lg bg-[var(--bg-card)] border border-white/10 focus:border-[var(--accent)] focus:outline-none resize-none" />
               </div>
               {error && <p className="text-red-400 text-sm">{error}</p>}
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setShowMapModal(false)}
                   className="flex-1 px-4 py-3 border border-white/10 rounded-lg hover:bg-white/5 transition-colors">Annuler</button>
                 <button type="submit" disabled={saving}
-                  className="flex-1 px-4 py-3 bg-lore-600 hover:bg-lore-700 rounded-lg font-medium transition-colors disabled:opacity-50">
+                  className="btn-primary flex-1 !px-4 !py-3 !rounded-lg disabled:opacity-50">
                   {saving ? "Création..." : "Créer"}
                 </button>
               </div>
@@ -269,18 +269,18 @@ export default function MapPage() {
       {showMarkerModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <div className="bg-[var(--bg-secondary)] rounded-2xl p-8 w-full max-w-md border border-white/10 shadow-2xl">
-            <h2 className="text-2xl font-bold mb-6">📍 Nouveau lieu</h2>
+            <h2 className="font-heading text-2xl font-bold tracking-wide mb-6">📍 Nouveau lieu</h2>
             <form onSubmit={handleAddMarker} className="space-y-4">
               <div>
                 <label className="block text-sm text-[var(--text-secondary)] mb-1">Nom *</label>
                 <input value={markerForm.name} onChange={(e) => setMarkerForm({ ...markerForm, name: e.target.value })}
                   placeholder="Citadelle d'Ombrefer" autoFocus
-                  className="w-full px-4 py-3 rounded-lg bg-[var(--bg-card)] border border-white/10 focus:border-lore-500 focus:outline-none" />
+                  className="w-full px-4 py-3 rounded-lg bg-[var(--bg-card)] border border-white/10 focus:border-[var(--accent)] focus:outline-none" />
               </div>
               <div>
                 <label className="block text-sm text-[var(--text-secondary)] mb-1">Type</label>
                 <select value={markerForm.marker_type} onChange={(e) => setMarkerForm({ ...markerForm, marker_type: e.target.value })}
-                  className="w-full px-4 py-3 rounded-lg bg-[var(--bg-card)] border border-white/10 focus:border-lore-500 focus:outline-none">
+                  className="w-full px-4 py-3 rounded-lg bg-[var(--bg-card)] border border-white/10 focus:border-[var(--accent)] focus:outline-none">
                   {markerTypes.map((t) => (
                     <option key={t} value={t}>{markerIcons[t]} {t.charAt(0).toUpperCase() + t.slice(1)}</option>
                   ))}
@@ -290,20 +290,20 @@ export default function MapPage() {
                 <label className="block text-sm text-[var(--text-secondary)] mb-1">Description</label>
                 <textarea value={markerForm.description} onChange={(e) => setMarkerForm({ ...markerForm, description: e.target.value })}
                   placeholder="Une forteresse imprenable..." rows={2}
-                  className="w-full px-4 py-3 rounded-lg bg-[var(--bg-card)] border border-white/10 focus:border-lore-500 focus:outline-none resize-none" />
+                  className="w-full px-4 py-3 rounded-lg bg-[var(--bg-card)] border border-white/10 focus:border-[var(--accent)] focus:outline-none resize-none" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm text-[var(--text-secondary)] mb-1">X</label>
                   <input type="number" step="0.1" value={markerForm.x}
                     onChange={(e) => setMarkerForm({ ...markerForm, x: parseFloat(e.target.value) || 0 })}
-                    className="w-full px-4 py-3 rounded-lg bg-[var(--bg-card)] border border-white/10 focus:border-lore-500 focus:outline-none" />
+                    className="w-full px-4 py-3 rounded-lg bg-[var(--bg-card)] border border-white/10 focus:border-[var(--accent)] focus:outline-none" />
                 </div>
                 <div>
                   <label className="block text-sm text-[var(--text-secondary)] mb-1">Y</label>
                   <input type="number" step="0.1" value={markerForm.y}
                     onChange={(e) => setMarkerForm({ ...markerForm, y: parseFloat(e.target.value) || 0 })}
-                    className="w-full px-4 py-3 rounded-lg bg-[var(--bg-card)] border border-white/10 focus:border-lore-500 focus:outline-none" />
+                    className="w-full px-4 py-3 rounded-lg bg-[var(--bg-card)] border border-white/10 focus:border-[var(--accent)] focus:outline-none" />
                 </div>
               </div>
               {error && <p className="text-red-400 text-sm">{error}</p>}
@@ -311,7 +311,7 @@ export default function MapPage() {
                 <button type="button" onClick={() => setShowMarkerModal(false)}
                   className="flex-1 px-4 py-3 border border-white/10 rounded-lg hover:bg-white/5 transition-colors">Annuler</button>
                 <button type="submit" disabled={saving}
-                  className="flex-1 px-4 py-3 bg-lore-600 hover:bg-lore-700 rounded-lg font-medium transition-colors disabled:opacity-50">
+                  className="btn-primary flex-1 !px-4 !py-3 !rounded-lg disabled:opacity-50">
                   {saving ? "Ajout..." : "Ajouter"}
                 </button>
               </div>

@@ -98,7 +98,7 @@ export default function ChatPage() {
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)]">
       <div className="mb-4">
-        <h1 className="text-3xl font-bold">🧠 LoreChat</h1>
+        <h1 className="font-heading text-3xl font-bold tracking-wide">🧠 LoreChat</h1>
         <p className="text-[var(--text-secondary)]">
           Pose des questions sur ton univers en langage naturel.
         </p>
@@ -108,7 +108,7 @@ export default function ChatPage() {
       <div className="flex-1 overflow-y-auto space-y-4 mb-4">
         {loadingHistory ? (
           <div className="flex items-center justify-center h-32">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-lore-500" />
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[var(--accent)]" />
           </div>
         ) : messages.length === 0 ? (
           <div className="text-center text-[var(--text-secondary)] mt-20">
@@ -121,7 +121,7 @@ export default function ChatPage() {
                 "Quels lieux sont liés à des batailles ?",
               ].map((q) => (
                 <button key={q} onClick={() => setInput(q)}
-                  className="block mx-auto text-sm px-4 py-2 bg-[var(--bg-card)] border border-white/5 rounded-lg hover:border-lore-500/30 transition-all">
+                  className="block mx-auto text-sm px-4 py-2 bg-[var(--bg-card)] border border-white/5 rounded-lg hover:border-[var(--accent)]/30 transition-all">
                   💬 "{q}"
                 </button>
               ))}
@@ -132,7 +132,7 @@ export default function ChatPage() {
             <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
               <div className={`max-w-[70%] px-4 py-3 rounded-xl ${
                 msg.role === "user"
-                  ? "bg-lore-600 text-white"
+                  ? "bg-[var(--accent)] text-[var(--bg-primary)]"
                   : "bg-[var(--bg-card)] border border-white/5"
               }`}>
                 <p className="whitespace-pre-wrap">{msg.content || (streaming && i === messages.length - 1 ? "..." : "")}</p>
@@ -150,10 +150,10 @@ export default function ChatPage() {
           onChange={(e) => setInput(e.target.value)}
           placeholder="Pose une question sur ton univers..."
           disabled={streaming}
-          className="flex-1 px-4 py-3 rounded-xl bg-[var(--bg-card)] border border-white/10 focus:border-lore-500 focus:outline-none disabled:opacity-50"
+          className="flex-1 px-4 py-3 rounded-xl bg-[var(--bg-card)] border border-white/10 focus:border-[var(--accent)] focus:outline-none disabled:opacity-50"
         />
         <button type="submit" disabled={streaming || !input.trim()}
-          className="px-6 py-3 bg-lore-600 hover:bg-lore-700 rounded-xl font-medium transition-colors disabled:opacity-50">
+          className="btn-primary !px-6 !py-3 !rounded-xl disabled:opacity-50">
           {streaming ? "⏳" : "Envoyer"}
         </button>
       </form>

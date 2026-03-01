@@ -5,7 +5,11 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { characters as charsApi } from "@/lib/api";
 
-const EMPTY_FORM = { name: "", title: "", description: "", traits: [], location: "", backstory: "", notes: "" };
+const EMPTY_FORM = {
+  name: "", title: "", description: "", traits: [], location: "",
+  backstory: "", notes: "", age: "", occupation: "", appearance: "",
+  powers: "", objectives: "", quotes: [],
+};
 
 // ── Catégories de relations (couvre TOUS les genres littéraires) ──
 const RELATION_CATEGORIES = [
@@ -91,6 +95,14 @@ const RELATION_TYPES = RELATION_CATEGORIES.flatMap((c) => c.types);
 
 const getRelationType = (type) => RELATION_TYPES.find((r) => r.value === type) || { value: type, label: type, icon: "🔗", color: "text-white/60 bg-white/5" };
 
+// Helper: get initials from name
+const getInitials = (name) => {
+  if (!name) return "?";
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+};
+
 export default function CharactersPage() {
   const { id: universeId } = useParams();
   const [characters, setCharacters] = useState([]);
@@ -99,6 +111,7 @@ export default function CharactersPage() {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [traitInput, setTraitInput] = useState("");
+  const [quoteInput, setQuoteInput] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [selected, setSelected] = useState(null);
@@ -168,8 +181,15 @@ export default function CharactersPage() {
       location: char.location || "",
       backstory: char.backstory || "",
       notes: char.notes || "",
+      age: char.age || "",
+      occupation: char.occupation || "",
+      appearance: char.appearance || "",
+      powers: char.powers || "",
+      objectives: char.objectives || "",
+      quotes: char.quotes || [],
     });
     setTraitInput("");
+    setQuoteInput("");
     setError("");
     setShowModal(true);
   };
@@ -182,6 +202,14 @@ export default function CharactersPage() {
   };
 
   const removeTrait = (t) => setForm({ ...form, traits: form.traits.filter((x) => x !== t) });
+
+  const addQuote = () => {
+    if (quoteInput.trim() && !form.quotes.includes(quoteInput.trim())) {
+      setForm({ ...form, quotes: [...form.quotes, quoteInput.trim()] });
+      setQuoteInput("");
+    }
+  };
+  const removeQuote = (q) => setForm({ ...form, quotes: form.quotes.filter((x) => x !== q) });
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -264,7 +292,7 @@ export default function CharactersPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-10 w-10 border-2 border-lore-500 border-t-transparent" />
+        <div className="animate-spin rounded-full h-10 w-10 border-2 border-[var(--accent)] border-t-transparent" />
       </div>
     );
   }
@@ -273,22 +301,29 @@ export default function CharactersPage() {
     <div className="page-enter">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Personnages</h1>
-          <p className="text-sm text-[var(--text-secondary)] mt-0.5">
-            {characters.length} personnage{characters.length !== 1 ? "s" : ""}
+          <h1 className="font-heading text-2xl font-semibold tracking-wide">CharacterGraph</h1>
+          <p className="text-xs text-[var(--text-secondary)] mt-0.5">
+            Fiches personnages &amp; graphe de relations
           </p>
         </div>
-        <div className="flex gap-2">
-          <Link href={`/universe/${universeId}/characters/graph`} className="btn-ghost text-xs !px-3 !py-2 flex items-center gap-1.5">
-            <span className="text-sm">🕸️</span> Graphe
+        <button onClick={openCreate} className="btn-primary text-xs !px-4 !py-2 flex items-center gap-1.5">+ Nouveau Personnage</button>
+      </div>
+
+      {/* Gallery / Graph toggle */}
+      <div className="flex items-center gap-0 mb-6">
+        <div className="inline-flex rounded-lg border border-[var(--border)] overflow-hidden text-xs">
+          <span className="px-3 py-1.5 bg-[var(--accent)]/10 text-[var(--accent)] font-medium flex items-center gap-1.5">
+            <span>👥</span> Galerie
+          </span>
+          <Link href={`/universe/${universeId}/characters/graph`} className="px-3 py-1.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--accent)]/5 flex items-center gap-1.5 transition-colors">
+            <span>🕸️</span> Graphe
           </Link>
-          <button onClick={openCreate} className="btn-primary text-xs !px-3 !py-2">+ Nouveau</button>
         </div>
       </div>
 
       {characters.length === 0 ? (
         <div className="card p-10 text-center">
-          <div className="w-14 h-14 rounded-2xl bg-lore-600/10 flex items-center justify-center mx-auto mb-4">
+          <div className="w-14 h-14 rounded-2xl bg-[var(--accent)]/8 flex items-center justify-center mx-auto mb-4">
             <span className="text-2xl">👥</span>
           </div>
           <p className="font-medium mb-1">Aucun personnage</p>
@@ -305,36 +340,47 @@ export default function CharactersPage() {
                   key={c.id}
                   onClick={() => selectCharacter(c)}
                   className={`card cursor-pointer group relative overflow-hidden ${
-                    selected?.id === c.id ? "!border-lore-500/40 ring-1 ring-lore-500/15" : ""
+                    selected?.id === c.id ? "!border-[var(--accent)]/30 ring-1 ring-[var(--accent)]/10" : ""
                   }`}
                 >
                   <div className="p-4">
-                    <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-3">
+                      <div className="avatar w-9 h-9 text-xs">{getInitials(c.name)}</div>
                       <div className="min-w-0 flex-1">
-                        <h3 className="font-semibold text-sm leading-tight">{c.name}</h3>
-                        {c.title && <p className="text-xs text-lore-400 mt-0.5">{c.title}</p>}
-                      </div>
-                      <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity ml-2">
-                        <button onClick={(e) => { e.stopPropagation(); openEdit(c); }} className="text-xs text-[var(--text-secondary)] hover:text-lore-400" title="Modifier">✏️</button>
-                        <button onClick={(e) => { e.stopPropagation(); handleDelete(c.id, c.name); }} className="text-xs text-[var(--text-secondary)] hover:text-red-400" title="Supprimer">✕</button>
+                        <div className="flex items-start justify-between">
+                          <div className="min-w-0">
+                            <h3 className="font-heading text-sm font-semibold tracking-wide leading-tight uppercase">{c.name}</h3>
+                            {c.title && <p className="text-[11px] text-[var(--accent)] mt-0.5 italic">{c.title}</p>}
+                          </div>
+                          <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity ml-2">
+                            <button onClick={(e) => { e.stopPropagation(); openEdit(c); }} className="text-xs text-[var(--text-secondary)] hover:text-[var(--accent)]" title="Modifier">✏️</button>
+                            <button onClick={(e) => { e.stopPropagation(); handleDelete(c.id, c.name); }} className="text-xs text-[var(--text-secondary)] hover:text-red-400" title="Supprimer">✕</button>
+                          </div>
+                        </div>
+                        {c.traits?.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {c.traits.slice(0, 3).map((t) => (
+                              <span key={t} className="chip text-[10px] !px-1.5 !py-0.5">{t}</span>
+                            ))}
+                            {c.traits.length > 3 && (
+                              <span className="text-[10px] text-[var(--text-secondary)] self-center">+{c.traits.length - 3}</span>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
-                    {c.location && <p className="text-[11px] text-[var(--text-secondary)] mt-1">📍 {c.location}</p>}
-                    <p className="text-xs text-[var(--text-secondary)] mt-1.5 line-clamp-2 leading-relaxed">
+                    <p className="text-xs text-[var(--text-secondary)] mt-2.5 line-clamp-2 leading-relaxed">
                       {c.description || "Pas de description"}
                     </p>
-                    {c.traits?.length > 0 && (
+                    {c.traits?.length > 0 && !selected && (
                       <div className="flex flex-wrap gap-1 mt-2">
-                        {c.traits.slice(0, 4).map((t) => (
+                        {c.traits.slice(3, 6).map((t) => (
                           <span key={t} className="chip text-[10px] !px-1.5 !py-0.5">{t}</span>
                         ))}
-                        {c.traits.length > 4 && (
-                          <span className="text-[10px] text-[var(--text-secondary)] self-center">+{c.traits.length - 4}</span>
-                        )}
                       </div>
                     )}
                   </div>
-                  <div className="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-lore-500 to-lore-700 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="absolute inset-x-0 bottom-0 h-0.5 bg-[var(--accent)]/30 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
               ))}
             </div>
@@ -344,22 +390,28 @@ export default function CharactersPage() {
           {selected && (
             <div className="hidden lg:block w-3/5 card sticky top-4 self-start max-h-[calc(100vh-6rem)] overflow-y-auto">
               <div className="p-5">
-                {/* Header */}
+                {/* Header with avatar */}
                 <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h2 className="text-xl font-bold">{selected.name}</h2>
-                    {selected.title && <p className="text-lore-400 text-xs mt-0.5">{selected.title}</p>}
+                  <div className="flex items-center gap-3">
+                    <div className="avatar w-12 h-12 text-base">{getInitials(selected.name)}</div>
+                    <div>
+                      <h2 className="font-heading text-lg font-semibold tracking-wide uppercase">{selected.name}</h2>
+                      {selected.title && <p className="text-[var(--accent)] text-xs italic">{selected.title}</p>}
+                    </div>
                   </div>
-                  <button onClick={() => { setSelected(null); setRelations([]); }} className="text-[var(--text-secondary)] hover:text-white text-sm">✕</button>
+                  <button onClick={() => { setSelected(null); setRelations([]); }} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-sm">✕</button>
                 </div>
 
-                {selected.location && (
-                  <p className="text-xs mb-3 text-[var(--text-secondary)]">📍 {selected.location}</p>
-                )}
+                {/* Quick info chips */}
+                <div className="flex flex-wrap gap-1.5 mb-4">
+                  {selected.age && <span className="chip text-[11px]">{selected.age}</span>}
+                  {selected.occupation && <span className="chip text-[11px]">{selected.occupation}</span>}
+                  {selected.location && <span className="chip text-[11px]">📍 {selected.location}</span>}
+                </div>
 
                 {selected.traits?.length > 0 && (
                   <div className="mb-4">
-                    <p className="text-[10px] text-[var(--text-secondary)] mb-1.5 uppercase tracking-wider font-medium">Traits</p>
+                    <p className="section-label">Traits</p>
                     <div className="flex flex-wrap gap-1.5">
                       {selected.traits.map((t) => (
                         <span key={t} className="chip chip-active text-[11px]">{t}</span>
@@ -370,21 +422,55 @@ export default function CharactersPage() {
 
                 {selected.description && (
                   <div className="mb-4">
-                    <p className="text-[10px] text-[var(--text-secondary)] mb-1.5 uppercase tracking-wider font-medium">Description</p>
+                    <p className="section-label">Description</p>
                     <p className="text-sm whitespace-pre-wrap leading-relaxed">{selected.description}</p>
+                  </div>
+                )}
+
+                {selected.appearance && (
+                  <div className="mb-4">
+                    <p className="section-label">Apparence</p>
+                    <p className="text-sm whitespace-pre-wrap leading-relaxed">{selected.appearance}</p>
                   </div>
                 )}
 
                 {selected.backstory && (
                   <div className="mb-4">
-                    <p className="text-[10px] text-[var(--text-secondary)] mb-1.5 uppercase tracking-wider font-medium">Backstory</p>
+                    <p className="section-label">Backstory</p>
                     <p className="text-sm whitespace-pre-wrap leading-relaxed">{selected.backstory}</p>
+                  </div>
+                )}
+
+                {selected.powers && (
+                  <div className="mb-4">
+                    <p className="section-label">Pouvoirs / Capacités</p>
+                    <p className="text-sm whitespace-pre-wrap leading-relaxed">{selected.powers}</p>
+                  </div>
+                )}
+
+                {selected.objectives && (
+                  <div className="mb-4">
+                    <p className="section-label">Objectifs</p>
+                    <p className="text-sm whitespace-pre-wrap leading-relaxed">{selected.objectives}</p>
+                  </div>
+                )}
+
+                {selected.quotes?.length > 0 && (
+                  <div className="mb-4">
+                    <p className="section-label">Citations</p>
+                    <div className="space-y-2">
+                      {selected.quotes.map((q, i) => (
+                        <blockquote key={i} className="text-sm italic border-l-2 border-[var(--accent)]/30 pl-3 text-[var(--text-secondary)]">
+                          « {q} »
+                        </blockquote>
+                      ))}
+                    </div>
                   </div>
                 )}
 
                 {selected.notes && (
                   <div className="mb-4">
-                    <p className="text-[10px] text-[var(--text-secondary)] mb-1.5 uppercase tracking-wider font-medium">Notes</p>
+                    <p className="section-label">Notes</p>
                     <p className="text-sm whitespace-pre-wrap leading-relaxed">{selected.notes}</p>
                   </div>
                 )}
@@ -392,7 +478,7 @@ export default function CharactersPage() {
                 {/* ── Relations ── */}
                 <div className="mt-5 pt-4 border-t border-[var(--border)]">
                   <div className="flex items-center justify-between mb-3">
-                    <p className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium">
+                    <p className="section-label !mb-0">
                       Relations ({relations.length})
                     </p>
                     {availableTargets.length > 0 && (
@@ -402,14 +488,14 @@ export default function CharactersPage() {
 
                   {loadingRelations ? (
                     <div className="flex justify-center py-4">
-                      <div className="animate-spin rounded-full h-5 w-5 border-2 border-lore-500 border-t-transparent" />
+                      <div className="animate-spin rounded-full h-5 w-5 border-2 border-[var(--accent)] border-t-transparent" />
                     </div>
                   ) : relations.length === 0 ? (
                     <div className="text-center py-5 text-[var(--text-secondary)]">
                       <p className="text-lg mb-1">🔗</p>
                       <p className="text-xs">Aucune relation.</p>
                       {availableTargets.length > 0 && (
-                        <button onClick={openAddRelation} className="mt-2 text-[11px] text-lore-400 hover:text-lore-300 transition-colors">
+                        <button onClick={openAddRelation} className="mt-2 text-[11px] text-[var(--accent)] hover:brightness-110 transition-colors">
                           Ajouter une relation →
                         </button>
                       )}
@@ -432,7 +518,7 @@ export default function CharactersPage() {
                             <div className="flex-1 min-w-0">
                               <button
                                 onClick={() => { if (otherChar) selectCharacter(otherChar); }}
-                                className="font-medium text-xs hover:text-lore-400 transition-colors truncate block"
+                                className="font-medium text-xs hover:text-[var(--accent)] transition-colors truncate block"
                               >
                                 {otherChar?.name || "Inconnu"}
                               </button>
@@ -467,44 +553,49 @@ export default function CharactersPage() {
       {/* ── Modal création/édition personnage ── */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="glass rounded-2xl p-6 w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
-            <h2 className="text-lg font-bold mb-5">
-              {editing ? `Modifier ${editing.name}` : "Nouveau personnage"}
+          <div className="glass rounded-2xl p-6 w-full max-w-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
+            <h2 className="font-heading text-lg font-semibold tracking-wide mb-5">
+              {editing ? `Modifier ${editing.name}` : "Nouveau Personnage"}
             </h2>
             <form onSubmit={handleSave} className="space-y-3">
+              {/* Row 1: Name, Title */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-medium text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Nom *</label>
+                  <label className="section-label">Nom *</label>
                   <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    placeholder="Aragorn" className="input" autoFocus />
+                    placeholder="Raven Accrombessi" className="input" autoFocus />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-medium text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Titre</label>
+                  <label className="section-label">Titre / Rôle</label>
                   <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })}
-                    placeholder="Roi du Gondor" className="input" />
+                    placeholder="Archimage du Cercle d'Argent" className="input" />
                 </div>
               </div>
-              <div>
-                <label className="block text-[10px] font-medium text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Lieu</label>
-                <input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })}
-                  placeholder="Minas Tirith" className="input" />
+              {/* Row 2: Age, Occupation, Location */}
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="section-label">Âge</label>
+                  <input value={form.age} onChange={(e) => setForm({ ...form, age: e.target.value })}
+                    placeholder="20 ans" className="input" />
+                </div>
+                <div>
+                  <label className="section-label">Occupation</label>
+                  <input value={form.occupation} onChange={(e) => setForm({ ...form, occupation: e.target.value })}
+                    placeholder="Étudiante en informatique" className="input" />
+                </div>
+                <div>
+                  <label className="section-label">Lieu</label>
+                  <input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })}
+                    placeholder="Cotonou" className="input" />
+                </div>
               </div>
+              {/* Traits */}
               <div>
-                <label className="block text-[10px] font-medium text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Description</label>
-                <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  placeholder="Un rôdeur au passé mystérieux..." rows={3} className="input resize-none" />
-              </div>
-              <div>
-                <label className="block text-[10px] font-medium text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Backstory</label>
-                <textarea value={form.backstory} onChange={(e) => setForm({ ...form, backstory: e.target.value })}
-                  placeholder="Né héritier du trône, il a grandi en exil..." rows={3} className="input resize-none" />
-              </div>
-              <div>
-                <label className="block text-[10px] font-medium text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Traits de personnalité</label>
+                <label className="section-label">Traits de personnalité</label>
                 <div className="flex gap-2">
                   <input value={traitInput} onChange={(e) => setTraitInput(e.target.value)}
                     onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addTrait(); } }}
-                    placeholder="Courageux, Loyal..." className="input !py-2 flex-1" />
+                    placeholder="Manipulatrice, Charismatique..." className="input !py-2 flex-1" />
                   <button type="button" onClick={addTrait} className="btn-ghost !px-3 !py-2 text-sm">+</button>
                 </div>
                 {form.traits.length > 0 && (
@@ -518,10 +609,61 @@ export default function CharactersPage() {
                   </div>
                 )}
               </div>
+              {/* Description */}
               <div>
-                <label className="block text-[10px] font-medium text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Notes</label>
+                <label className="section-label">Description</label>
+                <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  placeholder="Membre influent du BDE, manipulatrice naturelle..." rows={3} className="input resize-none" />
+              </div>
+              {/* Appearance */}
+              <div>
+                <label className="section-label">Apparence physique</label>
+                <textarea value={form.appearance} onChange={(e) => setForm({ ...form, appearance: e.target.value })}
+                  placeholder="Taille, corpulence, traits distinctifs..." rows={3} className="input resize-none" />
+              </div>
+              {/* Backstory */}
+              <div>
+                <label className="section-label">Backstory</label>
+                <textarea value={form.backstory} onChange={(e) => setForm({ ...form, backstory: e.target.value })}
+                  placeholder="Née dans une famille de classe moyenne-supérieure..." rows={3} className="input resize-none" />
+              </div>
+              {/* Powers */}
+              <div>
+                <label className="section-label">Pouvoirs / Capacités</label>
+                <textarea value={form.powers} onChange={(e) => setForm({ ...form, powers: e.target.value })}
+                  placeholder="Suggestion mentale, manipulation psychique..." rows={3} className="input resize-none" />
+              </div>
+              {/* Objectives */}
+              <div>
+                <label className="section-label">Objectifs & Motivations</label>
+                <textarea value={form.objectives} onChange={(e) => setForm({ ...form, objectives: e.target.value })}
+                  placeholder="Court, moyen et long terme..." rows={3} className="input resize-none" />
+              </div>
+              {/* Quotes */}
+              <div>
+                <label className="section-label">Citations</label>
+                <div className="flex gap-2">
+                  <input value={quoteInput} onChange={(e) => setQuoteInput(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addQuote(); } }}
+                    placeholder="« Je ne suis pas devenue un monstre... »" className="input !py-2 flex-1" />
+                  <button type="button" onClick={addQuote} className="btn-ghost !px-3 !py-2 text-sm">+</button>
+                </div>
+                {form.quotes.length > 0 && (
+                  <div className="space-y-1.5 mt-2">
+                    {form.quotes.map((q, i) => (
+                      <div key={i} className="flex items-start gap-2 text-xs">
+                        <span className="italic text-[var(--text-secondary)] flex-1 border-l-2 border-[var(--accent)]/20 pl-2">« {q} »</span>
+                        <button type="button" onClick={() => removeQuote(q)} className="text-[var(--text-secondary)] hover:text-red-400 shrink-0">×</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {/* Notes */}
+              <div>
+                <label className="section-label">Notes</label>
                 <textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                  placeholder="Notes libres..." rows={2} className="input resize-none" />
+                  placeholder="Notes libres pour l'écriture..." rows={2} className="input resize-none" />
               </div>
               {error && <p className="text-red-400 text-sm">{error}</p>}
               <div className="flex gap-3 pt-1">
@@ -539,13 +681,13 @@ export default function CharactersPage() {
       {showRelationModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="glass rounded-2xl p-6 w-full max-w-md shadow-2xl">
-            <h2 className="text-lg font-bold mb-1">Nouvelle relation</h2>
+            <h2 className="font-heading text-lg font-semibold tracking-wide mb-1">Nouvelle relation</h2>
             <p className="text-xs text-[var(--text-secondary)] mb-5">
-              Depuis <span className="text-lore-400 font-medium">{selected?.name}</span>
+              Depuis <span className="text-[var(--accent)] font-medium">{selected?.name}</span>
             </p>
             <form onSubmit={handleAddRelation} className="space-y-4">
               <div>
-                <label className="block text-[10px] font-medium text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Personnage cible *</label>
+                <label className="section-label">Personnage cible *</label>
                 <select value={relationForm.target_id}
                   onChange={(e) => setRelationForm({ ...relationForm, target_id: e.target.value })}
                   className="input">
@@ -556,7 +698,7 @@ export default function CharactersPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] font-medium text-[var(--text-secondary)] mb-2 uppercase tracking-wider">Type de relation *</label>
+                <label className="section-label mb-2">Type de relation *</label>
                 <div className="max-h-56 overflow-y-auto space-y-3 pr-1">
                   {RELATION_CATEGORIES.map((cat) => (
                     <div key={cat.label}>
@@ -580,7 +722,7 @@ export default function CharactersPage() {
                 </div>
               </div>
               <div>
-                <label className="block text-[10px] font-medium text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Description (optionnel)</label>
+                <label className="section-label">Description (optionnel)</label>
                 <input value={relationForm.description}
                   onChange={(e) => setRelationForm({ ...relationForm, description: e.target.value })}
                   placeholder="Frères d'armes depuis la bataille de..." className="input" />

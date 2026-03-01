@@ -24,6 +24,12 @@ async def create_character(universe_id: str, data: CharacterCreate) -> dict:
                 "location": data.location,
                 "backstory": data.backstory,
                 "notes": data.notes,
+                "age": data.age,
+                "occupation": data.occupation,
+                "appearance": data.appearance,
+                "powers": data.powers,
+                "objectives": data.objectives,
+                "quotes": data.quotes if data.quotes else [],
             }
         )
         .execute()

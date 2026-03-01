@@ -18,25 +18,25 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-8">
       <div className="text-center max-w-2xl">
-        <h1 className="text-5xl font-bold mb-4">
-          🌍 Lore<span className="text-lore-500">OS</span>
+        <h1 className="font-heading text-5xl font-bold tracking-wide mb-4">
+          ⚙️ Lore<span className="text-[var(--accent)]">OS</span>
         </h1>
         <p className="text-xl text-[var(--text-secondary)] mb-8">
-          Le système d&apos;exploitation de l&apos;écrivain fantasy.
+          Le système d&apos;exploitation de l&apos;écrivain.
           <br />
-          Worldbuilding, langues, religions, cultures, personnages et histoire
+          Worldbuilding, personnages, relations, cultures et histoire
           dans une seule app.
         </p>
         <div className="flex gap-4 justify-center">
           <Link
             href="/login"
-            className="px-6 py-3 bg-lore-600 hover:bg-lore-700 rounded-lg font-medium transition-colors"
+            className="btn-primary !px-6 !py-3 !rounded-lg"
           >
             Se connecter
           </Link>
           <Link
             href="/register"
-            className="px-6 py-3 border border-lore-600 hover:bg-lore-600/10 rounded-lg font-medium transition-colors"
+            className="btn-ghost !px-6 !py-3 !rounded-lg"
           >
             Créer un compte
           </Link>

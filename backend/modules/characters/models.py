@@ -13,6 +13,13 @@ class CharacterCreate(BaseModel):
     location: str = ""
     backstory: str = ""
     notes: str = ""
+    # Extended fields
+    age: str = ""           # "20 ans", "immortel", etc.
+    occupation: str = ""    # "Étudiante en informatique"
+    appearance: str = ""    # Physical description
+    powers: str = ""        # Abilities / supernatural powers
+    objectives: str = ""    # Goals & motivations
+    quotes: list[str] = []  # Memorable quotes
 
 
 class CharacterUpdate(BaseModel):
@@ -24,6 +31,13 @@ class CharacterUpdate(BaseModel):
     location: str | None = None
     backstory: str | None = None
     notes: str | None = None
+    # Extended fields
+    age: str | None = None
+    occupation: str | None = None
+    appearance: str | None = None
+    powers: str | None = None
+    objectives: str | None = None
+    quotes: list[str] | None = None
 
 
 class CharacterOut(BaseModel):
@@ -37,6 +51,13 @@ class CharacterOut(BaseModel):
     location: str
     backstory: str
     notes: str
+    # Extended fields (with defaults for backward compat)
+    age: str = ""
+    occupation: str = ""
+    appearance: str = ""
+    powers: str = ""
+    objectives: str = ""
+    quotes: list[str] = []
     created_at: datetime
     updated_at: datetime
 

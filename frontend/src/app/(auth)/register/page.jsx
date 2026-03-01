@@ -64,8 +64,7 @@ export default function RegisterPage() {
             <br />
             Clique sur le lien pour activer ton compte.
           </p>
-          <Link href="/login" className="text-lore-400 hover:underline">
-            Retour à la connexion
+          <Link href="/login" className="text-[var(--accent)] hover:underline">
           </Link>
         </div>
       </main>
@@ -75,7 +74,7 @@ export default function RegisterPage() {
   return (
     <main className="flex min-h-screen items-center justify-center p-8">
       <div className="w-full max-w-md bg-[var(--bg-card)] rounded-xl p-8">
-        <h1 className="text-2xl font-bold mb-6 text-center">Créer un compte</h1>
+        <h1 className="font-heading text-2xl font-bold tracking-wide mb-6 text-center">Créer un compte</h1>
 
         {error && (
           <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
@@ -125,7 +124,7 @@ export default function RegisterPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 rounded-lg bg-[var(--bg-secondary)] border border-white/10 focus:border-lore-500 focus:outline-none"
+              className="w-full px-4 py-2 rounded-lg bg-[var(--bg-secondary)] border border-white/10 focus:border-[var(--accent)] focus:outline-none"
               placeholder="ton@email.com"
               required
             />
@@ -138,7 +137,7 @@ export default function RegisterPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 rounded-lg bg-[var(--bg-secondary)] border border-white/10 focus:border-lore-500 focus:outline-none"
+              className="w-full px-4 py-2 rounded-lg bg-[var(--bg-secondary)] border border-white/10 focus:border-[var(--accent)] focus:outline-none"
               required
             />
           </div>
@@ -150,14 +149,14 @@ export default function RegisterPage() {
               type="password"
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
-              className="w-full px-4 py-2 rounded-lg bg-[var(--bg-secondary)] border border-white/10 focus:border-lore-500 focus:outline-none"
+              className="w-full px-4 py-2 rounded-lg bg-[var(--bg-secondary)] border border-white/10 focus:border-[var(--accent)] focus:outline-none"
               required
             />
           </div>
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-lore-600 hover:bg-lore-700 disabled:opacity-50 rounded-lg font-medium transition-colors"
+            className="btn-primary w-full !py-3 !rounded-lg"
           >
             {loading ? "Création..." : "Créer mon compte"}
           </button>
@@ -165,7 +164,7 @@ export default function RegisterPage() {
 
         <p className="mt-6 text-center text-sm text-[var(--text-secondary)]">
           Déjà un compte ?{" "}
-          <Link href="/login" className="text-lore-400 hover:underline">
+          <Link href="/login" className="text-[var(--accent)] hover:underline">
             Se connecter
           </Link>
         </p>

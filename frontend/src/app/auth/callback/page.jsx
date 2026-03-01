@@ -36,7 +36,7 @@ export default function AuthCallbackPage() {
   return (
     <main className="flex min-h-screen items-center justify-center">
       <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-lore-500 mx-auto mb-4"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--accent)] mx-auto mb-4"></div>
         <p className="text-[var(--text-secondary)]">Connexion en cours...</p>
       </div>
     </main>

@@ -91,7 +91,7 @@ export default function UniversesPage() {
   if (loading || !user) {
     return (
       <main className="flex min-h-screen items-center justify-center">
-        <div className="animate-spin rounded-full h-10 w-10 border-2 border-lore-500 border-t-transparent" />
+        <div className="animate-spin rounded-full h-10 w-10 border-2 border-[var(--accent)] border-t-transparent" />
       </main>
     );
   }
@@ -101,8 +101,8 @@ export default function UniversesPage() {
       <header className="sticky top-0 z-30 glass px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-xl font-bold tracking-tight">Lore<span className="text-lore-400">OS</span></span>
-            <span className="text-[var(--text-secondary)] text-sm hidden sm:block">/ Mes Univers</span>
+            <span className="font-heading text-lg font-semibold tracking-wider text-[var(--accent)]">LOREOS</span>
+            <span className="text-[var(--text-secondary)] text-xs hidden sm:block">/ Mes Univers</span>
           </div>
           <div className="flex items-center gap-3">
             <span className="text-xs text-[var(--text-secondary)] hidden sm:block">{user.email}</span>
@@ -114,7 +114,7 @@ export default function UniversesPage() {
       <div className="max-w-6xl mx-auto px-6 py-8">
         <div className="flex items-end justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Mes Univers</h1>
+            <h1 className="font-heading text-2xl font-semibold tracking-wide">Mes Univers</h1>
             <p className="text-sm text-[var(--text-secondary)] mt-1">
               {universes.length} univers créé{universes.length !== 1 ? "s" : ""}
             </p>
@@ -124,11 +124,11 @@ export default function UniversesPage() {
 
         {fetching ? (
           <div className="flex justify-center py-20">
-            <div className="animate-spin rounded-full h-8 w-8 border-2 border-lore-500 border-t-transparent" />
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-[var(--accent)] border-t-transparent" />
           </div>
         ) : universes.length === 0 ? (
           <div className="card p-12 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-lore-600/10 flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 rounded-2xl bg-[var(--accent)]/8 flex items-center justify-center mx-auto mb-4">
               <span className="text-3xl">🌌</span>
             </div>
             <p className="text-lg font-medium mb-1">Aucun univers</p>
@@ -159,7 +159,7 @@ export default function UniversesPage() {
                     ))}
                   </div>
                 </Link>
-                <div className="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-lore-500 to-lore-700 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="absolute inset-x-0 bottom-0 h-0.5 bg-[var(--accent)]/40 opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
             ))}
           </div>
@@ -216,7 +216,7 @@ export default function UniversesPage() {
                 {form.genres.length === 0 && !genreInput && (
                   <div className="flex flex-wrap gap-1.5 mt-2">
                     {["Fantasy", "Dark Romance", "Science-Fiction", "Horreur", "Steampunk"].map((g) => (
-                      <button key={g} type="button" onClick={() => addGenre(g)} className="chip text-[11px] hover:bg-white/8">+ {g}</button>
+                      <button key={g} type="button" onClick={() => addGenre(g)} className="chip text-[11px]">+ {g}</button>
                     ))}
                   </div>
                 )}
