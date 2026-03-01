@@ -88,6 +88,10 @@ export const characters = {
       method: "POST",
       body: JSON.stringify(data),
     }),
+  deleteRelation: (universeId, charId, relationId) =>
+    request(`/universes/${universeId}/characters/${charId}/relations/${relationId}`, {
+      method: "DELETE",
+    }),
 };
 
 // ── Maps ──────────────────────────────────────────────────────

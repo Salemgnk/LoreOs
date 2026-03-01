@@ -1,22 +1,50 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useParams } from "next/navigation";
 import { characters as charsApi } from "@/lib/api";
 
 const EMPTY_FORM = { name: "", title: "", description: "", traits: [], location: "", backstory: "", notes: "" };
+
+const RELATION_TYPES = [
+  { value: "ally", label: "Allié", icon: "🤝", color: "text-green-400 bg-green-500/15" },
+  { value: "enemy", label: "Ennemi", icon: "⚔️", color: "text-red-400 bg-red-500/15" },
+  { value: "family", label: "Famille", icon: "👨‍👩‍👧", color: "text-blue-400 bg-blue-500/15" },
+  { value: "rival", label: "Rival", icon: "🔥", color: "text-orange-400 bg-orange-500/15" },
+  { value: "mentor", label: "Mentor", icon: "🎓", color: "text-purple-400 bg-purple-500/15" },
+  { value: "lover", label: "Amant·e", icon: "❤️", color: "text-pink-400 bg-pink-500/15" },
+  { value: "servant", label: "Serviteur", icon: "🛡️", color: "text-gray-400 bg-gray-500/15" },
+  { value: "master", label: "Maître", icon: "👑", color: "text-yellow-400 bg-yellow-500/15" },
+];
+
+const getRelationType = (type) => RELATION_TYPES.find((r) => r.value === type) || { value: type, label: type, icon: "🔗", color: "text-white/60 bg-white/5" };
 
 export default function CharactersPage() {
   const { id: universeId } = useParams();
   const [characters, setCharacters] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [editing, setEditing] = useState(null); // null = create, object = edit
+  const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [traitInput, setTraitInput] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [selected, setSelected] = useState(null); // fiche détail
+  const [selected, setSelected] = useState(null);
+
+  // Relations state
+  const [relations, setRelations] = useState([]);
+  const [loadingRelations, setLoadingRelations] = useState(false);
+  const [showRelationModal, setShowRelationModal] = useState(false);
+  const [relationForm, setRelationForm] = useState({ target_id: "", relation_type: "ally", description: "" });
+  const [relationError, setRelationError] = useState("");
+  const [savingRelation, setSavingRelation] = useState(false);
+
+  // Character name lookup
+  const charMap = useMemo(() => {
+    const map = {};
+    characters.forEach((c) => { map[c.id] = c; });
+    return map;
+  }, [characters]);
 
   const fetchCharacters = async () => {
     try {
@@ -29,7 +57,26 @@ export default function CharactersPage() {
     }
   };
 
+  const fetchRelations = async (charId) => {
+    setLoadingRelations(true);
+    try {
+      const data = await charsApi.getRelations(universeId, charId);
+      setRelations(data);
+    } catch (e) {
+      console.error("Erreur relations:", e);
+      setRelations([]);
+    } finally {
+      setLoadingRelations(false);
+    }
+  };
+
   useEffect(() => { fetchCharacters(); }, [universeId]);
+
+  // Quand on sélectionne un personnage, charger ses relations
+  const selectCharacter = async (char) => {
+    setSelected(char);
+    await fetchRelations(char.id);
+  };
 
   const openCreate = () => {
     setEditing(null);
@@ -77,6 +124,7 @@ export default function CharactersPage() {
       }
       setShowModal(false);
       setSelected(null);
+      setRelations([]);
       await fetchCharacters();
     } catch (e) {
       setError(e.message);
@@ -86,15 +134,60 @@ export default function CharactersPage() {
   };
 
   const handleDelete = async (charId, name) => {
-    if (!confirm(`Supprimer "${name}" ?`)) return;
+    if (!confirm(`Supprimer "${name}" ? Toutes ses relations seront aussi supprimées.`)) return;
     try {
       await charsApi.delete(universeId, charId);
-      if (selected?.id === charId) setSelected(null);
+      if (selected?.id === charId) { setSelected(null); setRelations([]); }
       await fetchCharacters();
     } catch (e) {
       alert("Erreur: " + e.message);
     }
   };
+
+  // ── Relations handlers ──
+  const openAddRelation = () => {
+    setRelationForm({ target_id: "", relation_type: "ally", description: "" });
+    setRelationError("");
+    setShowRelationModal(true);
+  };
+
+  const handleAddRelation = async (e) => {
+    e.preventDefault();
+    if (!relationForm.target_id) return setRelationError("Choisis un personnage cible");
+    if (relationForm.target_id === selected.id) return setRelationError("Un personnage ne peut pas avoir une relation avec lui-même");
+    setSavingRelation(true);
+    setRelationError("");
+    try {
+      await charsApi.addRelation(universeId, selected.id, {
+        source_id: selected.id,
+        target_id: relationForm.target_id,
+        relation_type: relationForm.relation_type,
+        description: relationForm.description,
+      });
+      setShowRelationModal(false);
+      await fetchRelations(selected.id);
+    } catch (e) {
+      setRelationError(e.message);
+    } finally {
+      setSavingRelation(false);
+    }
+  };
+
+  const handleDeleteRelation = async (relationId) => {
+    if (!confirm("Supprimer cette relation ?")) return;
+    try {
+      await charsApi.deleteRelation(universeId, selected.id, relationId);
+      await fetchRelations(selected.id);
+    } catch (e) {
+      alert("Erreur: " + e.message);
+    }
+  };
+
+  // Personnages disponibles pour les relations (exclure le sélectionné)
+  const availableTargets = useMemo(
+    () => characters.filter((c) => c.id !== selected?.id),
+    [characters, selected]
+  );
 
   if (loading) {
     return (
@@ -135,35 +228,36 @@ export default function CharactersPage() {
         </div>
       ) : (
         <div className="flex gap-6">
-          {/* Liste */}
-          <div className="w-full lg:w-1/2 space-y-3">
+          {/* ── Liste personnages ── */}
+          <div className="w-full lg:w-2/5 space-y-3">
             {characters.map((c) => (
               <div
                 key={c.id}
-                onClick={() => setSelected(c)}
+                onClick={() => selectCharacter(c)}
                 className={`bg-[var(--bg-card)] rounded-xl p-4 border cursor-pointer transition-all group ${
                   selected?.id === c.id ? "border-lore-500/50 ring-1 ring-lore-500/20" : "border-white/5 hover:border-white/10"
                 }`}
               >
                 <div className="flex items-start justify-between">
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <h3 className="font-semibold text-lg">{c.name}</h3>
                     {c.title && <p className="text-sm text-lore-400">{c.title}</p>}
+                    {c.location && <p className="text-xs text-[var(--text-secondary)] mt-0.5">📍 {c.location}</p>}
                     <p className="text-sm text-[var(--text-secondary)] mt-1 line-clamp-2">
                       {c.description || "Pas de description"}
                     </p>
                     {c.traits?.length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-2">
-                        {c.traits.slice(0, 4).map((t) => (
+                        {c.traits.slice(0, 3).map((t) => (
                           <span key={t} className="text-xs px-2 py-0.5 bg-white/5 rounded-full">{t}</span>
                         ))}
-                        {c.traits.length > 4 && (
-                          <span className="text-xs text-[var(--text-secondary)]">+{c.traits.length - 4}</span>
+                        {c.traits.length > 3 && (
+                          <span className="text-xs text-[var(--text-secondary)]">+{c.traits.length - 3}</span>
                         )}
                       </div>
                     )}
                   </div>
-                  <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity ml-2">
                     <button onClick={(e) => { e.stopPropagation(); openEdit(c); }} className="text-sm hover:text-lore-400" title="Modifier">✏️</button>
                     <button onClick={(e) => { e.stopPropagation(); handleDelete(c.id, c.name); }} className="text-sm hover:text-red-400" title="Supprimer">🗑️</button>
                   </div>
@@ -172,22 +266,26 @@ export default function CharactersPage() {
             ))}
           </div>
 
-          {/* Fiche détail */}
+          {/* ── Fiche détail + Relations ── */}
           {selected && (
-            <div className="hidden lg:block w-1/2 bg-[var(--bg-card)] rounded-xl p-6 border border-white/5 sticky top-8 self-start max-h-[80vh] overflow-y-auto">
+            <div className="hidden lg:block w-3/5 bg-[var(--bg-card)] rounded-xl p-6 border border-white/5 sticky top-8 self-start max-h-[85vh] overflow-y-auto">
+              {/* Header */}
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <h2 className="text-2xl font-bold">{selected.name}</h2>
-                  {selected.title && <p className="text-lore-400">{selected.title}</p>}
+                  {selected.title && <p className="text-lore-400 text-sm">{selected.title}</p>}
                 </div>
-                <button onClick={() => setSelected(null)} className="text-[var(--text-secondary)] hover:text-white">✕</button>
+                <button onClick={() => { setSelected(null); setRelations([]); }} className="text-[var(--text-secondary)] hover:text-white text-lg">✕</button>
               </div>
+
+              {/* Info */}
               {selected.location && (
                 <p className="text-sm mb-3"><span className="text-[var(--text-secondary)]">📍 Lieu :</span> {selected.location}</p>
               )}
+
               {selected.traits?.length > 0 && (
                 <div className="mb-4">
-                  <p className="text-sm text-[var(--text-secondary)] mb-1">Traits :</p>
+                  <p className="text-xs text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Traits</p>
                   <div className="flex flex-wrap gap-1">
                     {selected.traits.map((t) => (
                       <span key={t} className="text-xs px-2 py-1 bg-lore-600/20 text-lore-400 rounded-full">{t}</span>
@@ -195,25 +293,99 @@ export default function CharactersPage() {
                   </div>
                 </div>
               )}
+
               {selected.description && (
                 <div className="mb-4">
-                  <p className="text-sm text-[var(--text-secondary)] mb-1">Description :</p>
-                  <p className="text-sm whitespace-pre-wrap">{selected.description}</p>
+                  <p className="text-xs text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Description</p>
+                  <p className="text-sm whitespace-pre-wrap leading-relaxed">{selected.description}</p>
                 </div>
               )}
+
               {selected.backstory && (
                 <div className="mb-4">
-                  <p className="text-sm text-[var(--text-secondary)] mb-1">Backstory :</p>
-                  <p className="text-sm whitespace-pre-wrap">{selected.backstory}</p>
+                  <p className="text-xs text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Backstory</p>
+                  <p className="text-sm whitespace-pre-wrap leading-relaxed">{selected.backstory}</p>
                 </div>
               )}
+
               {selected.notes && (
                 <div className="mb-4">
-                  <p className="text-sm text-[var(--text-secondary)] mb-1">Notes :</p>
-                  <p className="text-sm whitespace-pre-wrap">{selected.notes}</p>
+                  <p className="text-xs text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Notes</p>
+                  <p className="text-sm whitespace-pre-wrap leading-relaxed">{selected.notes}</p>
                 </div>
               )}
-              <div className="flex gap-2 mt-4 pt-4 border-t border-white/5">
+
+              {/* ── Relations ── */}
+              <div className="mt-6 pt-4 border-t border-white/5">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-xs text-[var(--text-secondary)] uppercase tracking-wider">
+                    Relations ({relations.length})
+                  </p>
+                  {availableTargets.length > 0 && (
+                    <button onClick={openAddRelation}
+                      className="text-xs px-3 py-1.5 bg-lore-600/20 text-lore-400 hover:bg-lore-600/30 rounded-lg transition-colors">
+                      + Ajouter
+                    </button>
+                  )}
+                </div>
+
+                {loadingRelations ? (
+                  <div className="flex justify-center py-4">
+                    <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-lore-500" />
+                  </div>
+                ) : relations.length === 0 ? (
+                  <div className="text-center py-6 text-[var(--text-secondary)]">
+                    <p className="text-2xl mb-1">🔗</p>
+                    <p className="text-sm">Aucune relation.</p>
+                    {availableTargets.length > 0 && (
+                      <button onClick={openAddRelation}
+                        className="mt-2 text-xs text-lore-400 hover:text-lore-300 transition-colors">
+                        Ajouter une relation →
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {relations.map((rel) => {
+                      const rt = getRelationType(rel.relation_type);
+                      const isSource = rel.source_id === selected.id;
+                      const otherCharId = isSource ? rel.target_id : rel.source_id;
+                      const otherChar = charMap[otherCharId];
+                      const direction = isSource ? "→" : "←";
+
+                      return (
+                        <div key={rel.id} className="flex items-center gap-3 bg-[var(--bg-secondary)] rounded-lg p-3 group">
+                          <span className={`text-xs px-2 py-1 rounded-full font-medium ${rt.color}`}>
+                            {rt.icon} {rt.label}
+                          </span>
+                          <span className="text-[var(--text-secondary)] text-xs">{direction}</span>
+                          <div className="flex-1 min-w-0">
+                            <button
+                              onClick={() => { if (otherChar) selectCharacter(otherChar); }}
+                              className="font-medium text-sm hover:text-lore-400 transition-colors truncate block"
+                            >
+                              {otherChar?.name || "Inconnu"}
+                            </button>
+                            {rel.description && (
+                              <p className="text-xs text-[var(--text-secondary)] truncate">{rel.description}</p>
+                            )}
+                          </div>
+                          <button
+                            onClick={() => handleDeleteRelation(rel.id)}
+                            className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-300 text-xs transition-opacity"
+                            title="Supprimer la relation"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-2 mt-6 pt-4 border-t border-white/5">
                 <button onClick={() => openEdit(selected)} className="flex-1 px-3 py-2 bg-lore-600/20 text-lore-400 hover:bg-lore-600/30 rounded-lg text-sm transition-colors">
                   ✏️ Modifier
                 </button>
@@ -226,7 +398,7 @@ export default function CharactersPage() {
         </div>
       )}
 
-      {/* ── Modal création/édition ── */}
+      {/* ── Modal création/édition personnage ── */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <div className="bg-[var(--bg-secondary)] rounded-2xl p-8 w-full max-w-lg border border-white/10 shadow-2xl max-h-[90vh] overflow-y-auto">
@@ -298,6 +470,66 @@ export default function CharactersPage() {
                 <button type="submit" disabled={saving}
                   className="flex-1 px-4 py-3 bg-lore-600 hover:bg-lore-700 rounded-lg font-medium transition-colors disabled:opacity-50">
                   {saving ? "Sauvegarde..." : editing ? "Sauvegarder" : "Créer"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal ajout relation ── */}
+      {showRelationModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-[var(--bg-secondary)] rounded-2xl p-8 w-full max-w-md border border-white/10 shadow-2xl">
+            <h2 className="text-2xl font-bold mb-2">🔗 Nouvelle relation</h2>
+            <p className="text-sm text-[var(--text-secondary)] mb-6">
+              Depuis <span className="text-lore-400 font-medium">{selected?.name}</span>
+            </p>
+            <form onSubmit={handleAddRelation} className="space-y-4">
+              <div>
+                <label className="block text-sm text-[var(--text-secondary)] mb-1">Personnage cible *</label>
+                <select value={relationForm.target_id}
+                  onChange={(e) => setRelationForm({ ...relationForm, target_id: e.target.value })}
+                  className="w-full px-4 py-3 rounded-lg bg-[var(--bg-card)] border border-white/10 focus:border-lore-500 focus:outline-none">
+                  <option value="">— Choisir —</option>
+                  {availableTargets.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}{c.title ? ` (${c.title})` : ""}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm text-[var(--text-secondary)] mb-2">Type de relation *</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {RELATION_TYPES.map((rt) => (
+                    <button key={rt.value} type="button"
+                      onClick={() => setRelationForm({ ...relationForm, relation_type: rt.value })}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all border ${
+                        relationForm.relation_type === rt.value
+                          ? `${rt.color} border-current`
+                          : "border-white/5 text-[var(--text-secondary)] hover:bg-white/5"
+                      }`}>
+                      <span>{rt.icon}</span>
+                      <span>{rt.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm text-[var(--text-secondary)] mb-1">Description (optionnel)</label>
+                <input value={relationForm.description}
+                  onChange={(e) => setRelationForm({ ...relationForm, description: e.target.value })}
+                  placeholder="Frères d'armes depuis la bataille de..."
+                  className="w-full px-4 py-3 rounded-lg bg-[var(--bg-card)] border border-white/10 focus:border-lore-500 focus:outline-none" />
+              </div>
+              {relationError && <p className="text-red-400 text-sm">{relationError}</p>}
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => setShowRelationModal(false)}
+                  className="flex-1 px-4 py-3 border border-white/10 rounded-lg hover:bg-white/5 transition-colors">
+                  Annuler
+                </button>
+                <button type="submit" disabled={savingRelation}
+                  className="flex-1 px-4 py-3 bg-lore-600 hover:bg-lore-700 rounded-lg font-medium transition-colors disabled:opacity-50">
+                  {savingRelation ? "Ajout..." : "Ajouter"}
                 </button>
               </div>
             </form>

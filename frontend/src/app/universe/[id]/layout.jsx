@@ -29,8 +29,16 @@ export default function UniverseLayout({ children }) {
     <div className="flex min-h-screen">
       {/* Sidebar */}
       <aside className="w-64 bg-[var(--bg-secondary)] border-r border-white/5 p-4 flex flex-col">
-        <Link href="/" className="text-xl font-bold mb-8">
+        <Link href="/" className="text-xl font-bold mb-4">
           🌍 Lore<span className="text-lore-500">OS</span>
+        </Link>
+
+        <Link
+          href="/universes"
+          className="flex items-center gap-2 px-3 py-2 mb-4 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-white/5 hover:text-white border border-white/5 transition-colors"
+        >
+          <span>←</span>
+          <span>Mes Univers</span>
         </Link>
 
         <nav className="space-y-1 flex-1">
